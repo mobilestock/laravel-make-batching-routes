@@ -1,0 +1,337 @@
+<?php
+
+use Illuminate\Auth\Middleware\Authenticate;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\File;
+use MobileStock\MakeBatchingRoutes\Commands\MakeBatchingRoutes;
+
+$BASE_PATH = __DIR__ . '/../Temp';
+$DATABASE_PATH = "$BASE_PATH/database";
+$MODEL_PATH = "$BASE_PATH/Models";
+
+beforeEach(function () use ($MODEL_PATH, $DATABASE_PATH) {
+    foreach ([$MODEL_PATH, $DATABASE_PATH] as $path) {
+        if (File::exists($path)) {
+            File::deleteDirectory($path);
+        }
+        File::makeDirectory($path, 755, true);
+    }
+
+    $this->command = new MakeBatchingRoutes();
+});
+
+dataset('datasetNamespaces', function () {
+    return [
+        'return' => ['Tests\Temp', 1],
+        'not return' => ['', 0],
+    ];
+});
+
+it('should :dataset models', function (string $namespace, int $modelCount) use ($MODEL_PATH) {
+    $modelContent = <<<PHP
+<?php
+
+namespace Tests\Temp\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use MobileStock\MakeBatchingRoutes\HasBatchingFindEndpoint;
+
+class Test extends Model
+{
+    use HasBatchingFindEndpoint;
+}
+PHP;
+
+    File::put("$MODEL_PATH/Test.php", $modelContent);
+    App::partialMock()
+        ->shouldReceive('path')
+        ->with('Models')
+        ->once()
+        ->andReturn('/laravel-make-batching-routes/tests/Temp/Models');
+
+    $this->command->projectNamespace = $namespace;
+    $models = $this->command->getModelsReflections();
+    expect($models)->toBeArray()->toHaveCount($modelCount);
+})->with('datasetNamespaces');
+
+it('should insert controller correctly', function () {
+    App::partialMock()
+        ->shouldReceive('path')
+        ->with('Http/Controllers')
+        ->once()
+        ->andReturn(__DIR__ . '/../Temp/Http/Controllers');
+    File::partialMock()->shouldReceive('put')->once();
+
+    $this->command->projectNamespace = 'App';
+    $this->command->insertController();
+});
+
+it('should return columns from sql schema', function () {
+    $schemaContent = <<<SQL
+CREATE TABLE `test_table` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `name` varchar(255) NOT NULL,
+    `created_at` timestamp NULL DEFAULT NULL,
+    `updated_at` timestamp NULL DEFAULT NULL,
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB;
+SQL;
+    File::partialMock()
+        ->shouldReceive('exists')
+        ->once()
+        ->andReturnTrue()
+        ->shouldReceive('get')
+        ->once()
+        ->andReturn($schemaContent);
+
+    $columns = $this->command->getTableColumnsFromSchema('test_table');
+    expect($columns)->toMatchArray([
+        'id' => 'int(11)',
+        'name' => 'varchar(255)',
+        'created_at' => 'timestamp',
+        'updated_at' => 'timestamp',
+    ]);
+});
+
+it('should not found schema', function () {
+    File::partialMock()->shouldReceive('exists')->once()->andReturnFalse();
+
+    $this->command->getTableColumnsFromSchema('not_found');
+})->throws(DomainException::class, 'O arquivo de schema não foi encontrado');
+
+it('should not find table in sql schema', function () {
+    File::partialMock()->shouldReceive('exists')->once()->andReturnTrue()->shouldReceive('get')->once()->andReturn('');
+
+    $this->command->getTableColumnsFromSchema('not_found');
+})->throws(DomainException::class, 'Tabela não encontrada');
+
+it('should convert columns correctly', function () {
+    $convertedColumns = $this->command->convertColumnsToFactoryDefinitions([
+        'id' => 'int(11)',
+        'name' => 'varchar(255)',
+        'state' => 'char(2)',
+        'note' => 'decimal(10,2)',
+        'status' => "enum('PENDING', 'APPROVED', 'REJECTED')",
+        'permissions' => "set('READ', 'WRITE')",
+        'foo' => 'whatever',
+        'created_at' => 'timestamp',
+        'updated_at' => 'timestamp',
+    ]);
+
+    expect($convertedColumns)->toMatchArray([
+        "'id' => \$this->faker->unique()->numberBetween(1, 64),",
+        "'name' => \$this->faker->text(255),",
+        "'state' => \$this->faker->randomLetters(2),",
+        "'note' => \$this->faker->randomFloat(2, 1, 64),",
+        "'status' => \$this->faker->randomElement(['PENDING', 'APPROVED', 'REJECTED']),",
+        "'permissions' => \$this->faker->randomElements(['READ', 'WRITE']),",
+        "'foo' => null,",
+        "'created_at' => now(),",
+        "'updated_at' => now(),",
+    ]);
+});
+
+dataset('datasetDataTypes', function () {
+    return ['enum' => 'enum', 'set' => 'set'];
+});
+
+it('should not found :dataset options', function (string $type) {
+    $this->command->convertColumnsToFactoryDefinitions(['foo' => "$type()"]);
+})
+    ->with('datasetDataTypes')
+    ->throws(DomainException::class);
+
+dataset('datasetFactoriesGenerator', function () {
+    return [
+        'only base' => [1, true],
+        'model and base' => [2, false],
+    ];
+});
+
+it('should create :dataset factory', function (int $putTimesCalled, bool $factoryAlreadyExists) use ($DATABASE_PATH) {
+    $directoryPath = "$DATABASE_PATH/factories";
+
+    App::shouldReceive('databasePath')->with('factories')->once()->andReturn($directoryPath);
+    File::partialMock()
+        ->shouldReceive('ensureDirectoryExists')
+        ->with("$directoryPath/Batching")
+        ->once()
+        ->shouldReceive('put')
+        ->times($putTimesCalled)
+        ->shouldNotReceive('exists')
+        ->with("$directoryPath/TestFactory.php")
+        ->once()
+        ->andReturn($factoryAlreadyExists);
+
+    $this->command->projectNamespace = 'Tests\\Temp';
+    $this->command->insertFactoryFiles('Test', [
+        "'id' => \$this->faker->unique()->numberBetween(1, 64),",
+        "'name' => \$this->faker->text(255),",
+        "'created_at' => now(),",
+        "'updated_at' => now(),",
+    ]);
+})->with('datasetFactoriesGenerator');
+
+it('should create controller', function () use ($BASE_PATH) {
+    App::partialMock()
+        ->shouldReceive('path')
+        ->with('Http/Controllers')
+        ->once()
+        ->andReturn("$BASE_PATH/Http/Controllers");
+    File::partialMock()->shouldReceive('put')->once();
+
+    $this->command->projectNamespace = 'Tests\\Temp';
+    $this->command->insertController();
+});
+
+dataset('datasetWithAndWithoutMiddlewares', function () {
+    return [
+        'with' => [
+            '\\Tests\\Temp\\Models\\TestWithMiddlewares',
+            'test_with_middlewares',
+            [Authenticate::class . ':api', \Illuminate\Foundation\Http\Middleware\TrimStrings::class],
+        ],
+        'without' => ['\\Tests\\Temp\\Models\\TestWithoutMiddlewares', 'test_without_middlewares', []],
+    ];
+});
+
+it('should insert API route :dataset middlewares correctly', function (
+    string $modelNamespace,
+    string $tableName,
+    array $middlewares
+) use ($BASE_PATH) {
+    $mockClass = Mockery::mock(new class {})
+        ->shouldReceive('getBatchingMiddlewares')
+        ->once()
+        ->andReturn($middlewares)
+        ->getMock();
+
+    App::partialMock()
+        ->shouldReceive('make')
+        ->with($modelNamespace)
+        ->once()
+        ->andReturn($mockClass)
+        ->shouldReceive('basePath')
+        ->with('routes/BatchingApi.php')
+        ->once()
+        ->andReturn("$BASE_PATH/routes/BatchingApi.php");
+    File::partialMock()->shouldReceive('put')->once();
+
+    $this->command->projectNamespace = 'Tests\\Temp';
+    $this->command->insertAPIRouteFile([$modelNamespace => ['name' => $tableName]]);
+})->with('datasetWithAndWithoutMiddlewares');
+
+it('should insert tests :dataset middlewares correctly', function (
+    string $modelNamespace,
+    string $tableName,
+    array $middlewares
+) use ($BASE_PATH) {
+    $mockClass = Mockery::mock(new class {})
+        ->shouldReceive('getBatchingMiddlewares')
+        ->once()
+        ->andReturn($middlewares)
+        ->getMock();
+
+    App::partialMock()
+        ->shouldReceive('make')
+        ->with($modelNamespace)
+        ->once()
+        ->andReturn($mockClass)
+        ->shouldReceive('basePath')
+        ->with('tests/Feature/BatchingControllerTest.php')
+        ->once()
+        ->andReturn("$BASE_PATH/tests/Feature/BatchingControllerTest.php");
+    File::partialMock()->shouldReceive('put')->once();
+
+    $this->command->projectNamespace = 'Tests\\Temp';
+    $this->command->insertTestFile([$modelNamespace => ['name' => $tableName, 'columns' => ['id', 'name']]]);
+})->with('datasetWithAndWithoutMiddlewares');
+
+it('should handle the command correctly', function () {
+    $tableName = 'test_command_handles';
+    $columns = [
+        'id' => 'int(11)',
+        'name' => 'varchar(255)',
+        'created_at' => 'timestamp',
+        'updated_at' => 'timestamp',
+    ];
+    $fields = [
+        "'id' => \$this->faker->unique()->numberBetween(1, 64),",
+        "'name' => \$this->faker->text(255),",
+        "'created_at' => now(),",
+        "'updated_at' => now(),",
+    ];
+    $tables = [
+        'Tests\\Temp\\Models\\Test' => [
+            'name' => $tableName,
+            'columns' => ['id', 'name', 'created_at', 'updated_at'],
+        ],
+    ];
+
+    $mockModel = Mockery::mock(Model::class)
+        ->shouldReceive('getTable')
+        ->once()
+        ->andReturn($tableName)
+        ->shouldReceive('getHidden')
+        ->once()
+        ->andReturn([])
+        ->getMock();
+
+    App::partialMock()
+        ->shouldReceive('getNamespace')
+        ->once()
+        ->andReturn('Tests\\Temp\\')
+        ->shouldReceive('make')
+        ->once()
+        ->andReturn($mockModel);
+
+    $artisanMock = Mockery::mock(\Illuminate\Contracts\Console\Kernel::class)
+        ->shouldReceive('call')
+        ->once()
+        ->with('schema:dump')
+        ->getMock();
+    Artisan::swap($artisanMock);
+
+    Mockery::mock(MakeBatchingRoutes::class)
+        ->makePartial()
+        ->shouldReceive('getModelsReflections')
+        ->once()
+        ->andReturn([new ReflectionClass('\\Tests\\Temp\\Models\\Test')])
+        ->shouldReceive('insertController')
+        ->once()
+        ->shouldReceive('getTableColumnsFromSchema')
+        ->with($tableName)
+        ->once()
+        ->andReturn($columns)
+        ->shouldReceive('convertColumnsToFactoryDefinitions')
+        ->with($columns)
+        ->once()
+        ->andReturn($fields)
+        ->shouldReceive('insertFactoryFiles')
+        ->with('Test', $fields)
+        ->once()
+        ->shouldReceive('insertAPIRouteFile')
+        ->with($tables)
+        ->once()
+        ->shouldReceive('insertTestFile')
+        ->with($tables)
+        ->once()
+        ->getMock()
+        ->handle();
+});
+
+it('should show error if not found models reflections', function () {
+    App::partialMock()->shouldReceive('getNamespace')->once()->andReturn('Tests\\Temp\\');
+    Mockery::mock(MakeBatchingRoutes::class)
+        ->makePartial()
+        ->shouldReceive('getModelsReflections')
+        ->once()
+        ->andReturn([])
+        ->shouldReceive('error')
+        ->with('Nenhuma model encontrada')
+        ->once()
+        ->getMock()
+        ->handle();
+});

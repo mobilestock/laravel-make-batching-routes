@@ -1,0 +1,42 @@
+{
+  "name": "mobilestock/laravel-make-batching-routes",
+  "description": "This library adds a route generator, controller, model and automated tests.",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "MobileStock",
+      "email": "fabio@mobilestock.com.br"
+    }
+  ],
+  "require-dev": {
+    "pestphp/pest": "^3.7",
+    "orchestra/testbench": "^9.5"
+  },
+  "autoload": {
+    "psr-4": {
+      "MobileStock\\MakeBatchingRoutes\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
+  },
+  "config": {
+    "allow-plugins": {
+      "pestphp/pest-plugin": true
+    }
+  },
+  "require": {
+    "illuminate/support": "^11.43",
+    "illuminate/console": "^11.43"
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "MobileStock\\MakeBatchingRoutes\\MakeBatchingRoutesServiceProvider"
+      ]
+    }
+  }
+}

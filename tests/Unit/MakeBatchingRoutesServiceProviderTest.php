@@ -1,0 +1,39 @@
+<?php
+
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Route;
+use MobileStock\MakeBatchingRoutes\MakeBatchingRoutesServiceProvider;
+use MobileStock\MakeBatchingRoutes\Commands\MakeBatchingRoutes;
+
+it('should calls boot correctly', function () {
+    $apiPath = __DIR__ . '/../Temp/BatchingApi.php';
+    File::put($apiPath, '<?php');
+
+    App::partialMock()->shouldReceive('basePath')->with('routes/BatchingApi.php')->once()->andReturn($apiPath);
+    File::partialMock()->shouldReceive('exists')->with($apiPath)->once()->andReturnTrue();
+    Route::partialMock()
+        ->shouldReceive('group')
+        ->once()
+        ->andReturnUsing(fn(array $attributes, Closure $callback): mixed => $callback($attributes));
+
+    Mockery::mock(MakeBatchingRoutesServiceProvider::class)
+        ->makePartial()
+        ->shouldAllowMockingProtectedMethods()
+        ->shouldReceive('loadRoutesFrom')
+        ->once()
+        ->withArgs(fn(string $path): bool => str_contains($path, 'BatchingApi.php'))
+        ->getMock()
+        ->boot();
+    File::delete($apiPath);
+});
+
+it('should registers commands correctly', function () {
+    Mockery::mock(MakeBatchingRoutesServiceProvider::class)
+        ->makePartial()
+        ->shouldReceive('commands')
+        ->with([MakeBatchingRoutes::class])
+        ->once()
+        ->getMock()
+        ->register();
+});
