@@ -79,6 +79,7 @@ class MakeBatchingRoutes extends Command
     {
         $modelsToGenerate = [];
         $modelPath = App::path('Models');
+        // TODO: Pesquisar porque disso:
         $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($modelPath));
 
         foreach ($files as $file) {
@@ -86,6 +87,7 @@ class MakeBatchingRoutes extends Command
                 continue;
             }
 
+            // TODO: Criar um Helper pra isso nn ficar duplicado com a model
             $path = $file->getRealPath();
             $relativePath = Str::after($path, $modelPath . DIRECTORY_SEPARATOR);
             $class = str_replace(['/', '.php'], ['\\', ''], $relativePath);
@@ -95,10 +97,9 @@ class MakeBatchingRoutes extends Command
                 continue;
             }
 
-            $reflection = new ReflectionClass($class);
-            $traits = trait_uses_recursive($reflection->getName());
+            $traits = trait_uses_recursive($class);
             if (array_key_exists(HasBatchingFindEndpoint::class, $traits)) {
-                $modelsToGenerate[] = $reflection;
+                $modelsToGenerate[] = new ReflectionClass($class);
             }
         }
 
@@ -227,6 +228,7 @@ PHP;
         File::put("$factoriesPath/{$fileName}Factory.php", $factoryContent);
     }
 
+    // TODO: Jogar pra lib
     public function insertController(): void
     {
         $controllerFile = <<<PHP
@@ -283,20 +285,20 @@ class Batching
 
         Request::validate([
             'limit' => ['nullable', 'integer', 'min:0', 'max:1000'],
-            'page' => ['nullable', 'integer', 'min:0'],
+            'page' => ['nullable', 'integer', 'min:1'],
         ]);
 
         \$data = Request::all();
         \$limit = \$data['limit'] ?? 1000;
-        \$page = \$data['page'] ?? 0;
-        \$offset = \$limit * \$page;
+        \$page = \$data['page'] ?? 1;
+        \$offset = \$limit * (\$page - 1);
 
         /** @var \Illuminate\Database\Eloquent\Builder \$query */
         \$query = \$model::query()->limit(\$limit)->offset(\$offset);
 
         \$data = Arr::except(\$data, ['limit', 'page']);
         foreach (\$data as \$key => \$value) {
-            \$query->{is_array(\$value) ? 'whereIn' : 'where'}(\$key, \$value);
+            \$query->whereIn(\$key, \$value);
         }
 
         \$values = \$query->get()->toArray();
