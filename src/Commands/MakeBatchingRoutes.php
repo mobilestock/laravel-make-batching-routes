@@ -271,9 +271,9 @@ PHP;
                 // TODO: Simplificar, como o de cima
                 $middlewares = array_map(function (string $middleware): string {
                     $parts = explode(':', $middleware);
-                    $middleware = '\\' . current($parts) . '::class';
+                    $middleware = current($parts);
 
-                    return $middleware;
+                    return "'$middleware'";
                 }, $middlewares);
 
                 $middlewareRemotion = '->withoutMiddleware([' . implode(', ', $middlewares) . '])';
