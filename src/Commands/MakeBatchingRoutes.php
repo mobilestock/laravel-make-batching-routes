@@ -133,7 +133,7 @@ class MakeBatchingRoutes extends Command
         $fields = [];
         $primaryColumn = current(array_keys($columns));
         foreach ($columns as $columnName => $columnType) {
-            $uniqueKey = $columnName === $primaryColumn ? '->unique()' : ''; // TODO: Analisar como o unique funciona
+            $uniqueKey = $columnName === $primaryColumn ? '->unique()' : '';
             $handleEnumOrSet = function (string $columnType, string $type) use ($uniqueKey): string {
                 preg_match("/$type\((.+)\)/i", $columnType, $matches);
                 if (empty($matches)) {
