@@ -76,7 +76,6 @@ class MakeBatchingRoutes extends Command
     {
         $modelsToGenerate = [];
         $modelPath = App::path('Models');
-        // TODO: Pesquisar porque disso:
         $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($modelPath));
 
         foreach ($files as $file) {
