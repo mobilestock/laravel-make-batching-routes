@@ -24,12 +24,12 @@ beforeEach(function () use ($MODEL_PATH, $DATABASE_PATH) {
 
 dataset('datasetNamespaces', function () {
     return [
-        'return' => ['Tests\Temp', 1],
+        'return' => ['Tests\\Temp', 1],
         'not return' => ['', 0],
     ];
 });
 
-it('should :dataset models', function (string $namespace, int $modelCount) use ($MODEL_PATH) {
+it('should :dataset models', function (string $nameSpace, int $modelCount) use ($MODEL_PATH) {
     $modelContent = <<<PHP
 <?php
 
@@ -48,10 +48,10 @@ PHP;
     App::partialMock()
         ->shouldReceive('path')
         ->with('Models')
-        ->once()
-        ->andReturn('/laravel-make-batching-routes/tests/Temp/Models');
+        ->andReturn('/laravel-make-batching-routes/tests/Temp/Models')
+        ->shouldReceive('getNamespace')
+        ->andReturn($nameSpace);
 
-    $this->command->projectNamespace = $namespace;
     $models = $this->command->getModelsReflections();
     expect($models)->toBeArray()->toHaveCount($modelCount);
 })->with('datasetNamespaces');
