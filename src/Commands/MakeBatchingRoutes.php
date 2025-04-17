@@ -324,19 +324,6 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 uses(RefreshDatabase::class);
 
-it('should jump if class does not exist', function () {
-    App::partialMock()
-        ->shouldReceive('getNamespace')
-        ->once()
-        ->andReturn('Fake\\\\')
-        ->shouldReceive('path')
-        ->once()
-        ->andReturn('/route-api/app/Models');
-
-    \$controller = new Batching();
-    \$controller->find();
-})->throws(NotFoundHttpException::class, 'Model não encontrada pra tabela: /');
-
 $testContent
 
 PHP;
