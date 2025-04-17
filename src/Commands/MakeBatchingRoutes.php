@@ -51,7 +51,6 @@ class MakeBatchingRoutes extends Command
         $tables = [];
 
         foreach ($reflections as $modelReflection) {
-            $namespace = $modelReflection->getName();
             $fileName = $modelReflection->getShortName();
             $model = App::make($modelReflection->name);
             $tableName = $model->getTable();
@@ -59,7 +58,7 @@ class MakeBatchingRoutes extends Command
             $hiddenColumns = $model->getHidden();
             $columns = $this->getTableColumnsFromSchema($tableName);
             $columns = array_diff_key($columns, array_flip($hiddenColumns));
-            $tables[$namespace] = ['name' => $tableName, 'columns' => array_keys($columns)];
+            $tables[$modelReflection->name] = ['name' => $tableName, 'columns' => array_keys($columns)];
 
             $fields = $this->convertColumnsToFactoryDefinitions($columns);
             $this->insertFactoryFiles($fileName, $fields);
@@ -69,7 +68,6 @@ class MakeBatchingRoutes extends Command
         $this->insertTestFile($tables);
         $this->info('Batching routes generated successfully');
         // TODO: Documentar no storybook
-        // TODO: Analisar de ter uma tarefa separada que implementa a lib nos projetos
     }
 
     /**
@@ -136,7 +134,7 @@ class MakeBatchingRoutes extends Command
         $fields = [];
         $primaryColumn = current(array_keys($columns));
         foreach ($columns as $columnName => $columnType) {
-            $uniqueKey = $columnName === $primaryColumn ? '->unique()' : '';
+            $uniqueKey = $columnName === $primaryColumn ? '->unique()' : ''; // TODO: Analisar como o unique funciona
             $handleEnumOrSet = function (string $columnType, string $type) use ($uniqueKey): string {
                 preg_match("/$type\((.+)\)/i", $columnType, $matches);
                 if (empty($matches)) {
@@ -150,26 +148,27 @@ class MakeBatchingRoutes extends Command
 
             preg_match('/\((.+)\)/', $columnType, $matches);
             $fields[] = match (true) {
-                str_contains($columnName, 'avatar') => "'$columnName' => \$this->faker{$uniqueKey}->imageUrl(),",
-                str_contains($columnName, 'phone') => "'$columnName' => \$this->faker{$uniqueKey}->phoneNumberBR(),",
-                str_contains($columnName, 'document') => "'$columnName' => \$this->faker{$uniqueKey}->document(),",
-                str_contains($columnName, 'latitude') => "'$columnName' => \$this->faker{$uniqueKey}->latitude(),",
-                str_contains($columnName, 'longitude') => "'$columnName' => \$this->faker{$uniqueKey}->longitude(),",
-                str_contains($columnType, 'tinyint(1)') => "'$columnName' => \$this->faker{$uniqueKey}->boolean(),",
-                str_contains($columnType, 'int') => "'$columnName' => \$this->faker{$uniqueKey}->numberBetween(1, 64),",
-                str_contains($columnType, 'enum') => "'$columnName' => " . $handleEnumOrSet($columnType, 'enum') . ',',
-                str_contains($columnType, 'set') => "'$columnName' => " . $handleEnumOrSet($columnType, 'set') . ',',
+                Str::contains($columnName, 'avatar') => "'$columnName' => \$this->faker{$uniqueKey}->imageUrl(),",
+                Str::contains($columnName, 'phone') => "'$columnName' => \$this->faker{$uniqueKey}->phoneNumberBR(),",
+                Str::contains($columnName, 'document') => "'$columnName' => \$this->faker{$uniqueKey}->document(),",
+                Str::contains($columnName, 'latitude') => "'$columnName' => \$this->faker{$uniqueKey}->latitude(),",
+                Str::contains($columnName, 'longitude') => "'$columnName' => \$this->faker{$uniqueKey}->longitude(),",
+                Str::contains($columnType, 'tinyint(1)') => "'$columnName' => \$this->faker{$uniqueKey}->boolean(),",
+                Str::contains($columnType, 'int')
+                    => "'$columnName' => \$this->faker{$uniqueKey}->numberBetween(1, 64),",
+                Str::contains($columnType, 'enum') => "'$columnName' => " . $handleEnumOrSet($columnType, 'enum') . ',',
+                Str::contains($columnType, 'set') => "'$columnName' => " . $handleEnumOrSet($columnType, 'set') . ',',
                 Str::contains($columnType, ['decimal', 'double', 'float'])
                     => "'$columnName' => \$this->faker{$uniqueKey}->randomFloat(2, 1, 64),",
-                str_contains($columnType, 'char(36)') => "'$columnName' => \$this->faker{$uniqueKey}->uuid(),",
-                str_contains($columnType, 'char') && $matches[1] >= 5
+                Str::contains($columnType, 'char(36)') => "'$columnName' => \$this->faker{$uniqueKey}->uuid(),",
+                Str::contains($columnType, 'char') && $matches[1] >= 5
                     => "'$columnName' => \$this->faker{$uniqueKey}->text($matches[1]),",
-                str_contains($columnType, 'char')
+                Str::contains($columnType, 'char')
                     => "'$columnName' => \$this->faker{$uniqueKey}->randomLetters($matches[1]),",
-                str_contains($columnType, 'text') => "'$columnName' => \$this->faker{$uniqueKey}->text(),",
+                Str::contains($columnType, 'text') => "'$columnName' => \$this->faker{$uniqueKey}->text(),",
                 Str::contains($columnType, ['timestamp', 'datetime']) => "'$columnName' => now(),",
-                str_contains($columnType, 'polygon') => "'$columnName' => \$this->faker{$uniqueKey}->polygon(),",
-                str_contains($columnType, 'point') => "'$columnName' => \$this->faker{$uniqueKey}->point(),",
+                Str::contains($columnType, 'polygon') => "'$columnName' => \$this->faker{$uniqueKey}->polygon(),",
+                Str::contains($columnType, 'point') => "'$columnName' => \$this->faker{$uniqueKey}->point(),",
                 default => "'$columnName' => null,",
             };
         }
@@ -249,7 +248,7 @@ class Batching
     public function find()
     {
         \$uriPath = Request::path();
-        \$uriPath = str_replace('api/', '', \$uriPath);
+        \$uriPath = str_replace('api/batching/', '', \$uriPath);
 
         \$namespace = App::getNamespace();
         \$namespace = rtrim(\$namespace, '\\\\');
@@ -288,34 +287,34 @@ class Batching
             'page' => ['nullable', 'integer', 'min:1'],
         ]);
 
-        \$data = Request::all();
-        \$limit = \$data['limit'] ?? 1000;
-        \$page = \$data['page'] ?? 1;
+        \$requestData = Request::all();
+        \$limit = \$requestData['limit'] ?? 1000;
+        \$page = \$requestData['page'] ?? 1;
         \$offset = \$limit * (\$page - 1);
 
         /** @var \Illuminate\Database\Eloquent\Builder \$query */
         \$query = \$model::query()->limit(\$limit)->offset(\$offset);
 
-        \$data = Arr::except(\$data, ['limit', 'page']);
-        foreach (\$data as \$key => \$value) {
+        \$requestData = Arr::except(\$requestData, ['limit', 'page']);
+        foreach (\$requestData as \$key => \$value) {
             \$query->whereIn(\$key, \$value);
         }
 
-        \$values = \$query->get()->toArray();
-        \$data = array_filter(\$data, fn(mixed \$item): bool => is_array(\$item));
-        if (empty(\$data)) {
-            return \$values;
+        \$databaseValues = \$query->get()->toArray();
+        if (empty(\$requestData)) {
+            return \$databaseValues;
         }
 
-        \$key = current(array_keys(\$data));
-        \$sorter = current(\$data);
-        usort(\$values, function (array \$a, array \$b) use (\$key, \$sorter): int {
+        // TODO: Documentar que se você quiser um ordenamento e estiver enviando vários parâmetros, o que deve usar pra ordenar tem que ser o primeiro indice
+        \$key = current(array_keys(\$requestData));
+        \$sorter = current(\$requestData);
+        usort(\$databaseValues, function (array \$a, array \$b) use (\$key, \$sorter): int {
             \$indexA = array_search(\$a[\$key], \$sorter);
             \$indexB = array_search(\$b[\$key], \$sorter);
             return \$indexA <=> \$indexB;
         });
 
-        return \$values;
+        return \$databaseValues;
     }
 }
 
@@ -327,26 +326,16 @@ PHP;
     public function insertAPIRouteFile(array $tables): void
     {
         $tablesBlock = [];
-        foreach ($tables as $modelNamespace => $table) {
-            $model = App::make($modelNamespace);
+        foreach ($tables as $modelClassName => $table) {
+            $model = App::make($modelClassName);
             $middlewares = $model::getBatchingMiddlewares();
             if (empty($middlewares)) {
                 $tablesBlock[] = "Route::get('/{$table['name']}', [Batching::class, 'find']);";
                 continue;
             }
 
-            $middlewares = array_map(function (string $middleware): string {
-                $parts = explode(':', $middleware);
-                $parts = array_map(function (string $part): string {
-                    $part = ltrim($part, '\\');
-                    $class = class_exists("\\$part") ? "\\$part::class" : "'$part'";
-
-                    return $class;
-                }, $parts);
-                $middleware = implode(" . ':' . ", $parts);
-
-                return $middleware;
-            }, $middlewares);
+            // TODO: Ver se tem algum método de quote
+            $middlewares = array_map(fn(string $middleware) => "'$middleware'", $middlewares);
 
             $middlewaresString = implode(', ', $middlewares);
             $tablesBlock[] = "Route::get('/{$table['name']}', [Batching::class, 'find'])->middleware([$middlewaresString]);";
@@ -363,7 +352,7 @@ $tablesBlock
 
 PHP;
 
-        $apiPath = App::basePath('routes/BatchingApi.php');
+        $apiPath = App::basePath('routes/batching.php');
         File::put($apiPath, $apiFileContent);
     }
 
@@ -376,6 +365,7 @@ PHP;
 
             $middlewareRemotion = '';
             if (!empty($middlewares)) {
+                // TODO: Simplificar, como o de cima
                 $middlewares = array_map(function (string $middleware): string {
                     $parts = explode(':', $middleware);
                     $middleware = '\\' . current($parts) . '::class';
@@ -400,14 +390,14 @@ it('should retrieves all values from the {$table['name']} with sorting', functio
     $queryParams
 
     \$query = http_build_query(\$queryParams);
-    \$response = \$this{$middlewareRemotion}->get("api/{$table['name']}?\$query");
+    \$response = \$this{$middlewareRemotion}->get("api/batching/{$table['name']}?\$query");
     \$response->assertStatus(Response::HTTP_OK);
     \$response->assertJson(\$values->toArray());
 });
 
 it('should retrieves all values from the {$table['name']} without sorting', function () {
     \$values = \\$modelNamespace::withoutEvents(fn() => \\$modelNamespace::factory(3)->create());
-    \$request = Request::create('api/users');
+    \$request = Request::create('api/batching/users');
     Request::swap(\$request);
 
     \$controller = new Batching();
@@ -438,7 +428,7 @@ it('should jump if class does not exist', function () {
         ->andReturn('Fake\\\\')
         ->shouldReceive('path')
         ->once()
-        ->andReturn('/users-api/app/Models');
+        ->andReturn('/route-api/app/Models');
 
     \$controller = new Batching();
     \$controller->find();

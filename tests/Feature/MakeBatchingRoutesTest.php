@@ -214,9 +214,9 @@ it('should insert API route :dataset middlewares correctly', function (
         ->once()
         ->andReturn($mockClass)
         ->shouldReceive('basePath')
-        ->with('routes/BatchingApi.php')
+        ->with('routes/batching.php')
         ->once()
-        ->andReturn("$BASE_PATH/routes/BatchingApi.php");
+        ->andReturn("$BASE_PATH/routes/batching.php");
     File::partialMock()->shouldReceive('put')->once();
 
     $this->command->projectNamespace = 'Tests\\Temp';

@@ -10,7 +10,7 @@ it('should calls boot correctly', function () {
     $apiPath = __DIR__ . '/../Temp/BatchingApi.php';
     File::put($apiPath, '<?php');
 
-    App::partialMock()->shouldReceive('basePath')->with('routes/BatchingApi.php')->once()->andReturn($apiPath);
+    App::partialMock()->shouldReceive('basePath')->with('routes/batching.php')->once()->andReturn($apiPath);
     File::partialMock()->shouldReceive('exists')->with($apiPath)->once()->andReturnTrue();
     Route::partialMock()
         ->shouldReceive('group')

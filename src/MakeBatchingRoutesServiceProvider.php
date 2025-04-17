@@ -14,10 +14,10 @@ class MakeBatchingRoutesServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // TODO: Discutir sobre como separar esses provedores
-        $apiPath = App::basePath('routes/BatchingApi.php');
+        $apiPath = App::basePath('routes/batching.php');
         if (File::exists($apiPath)) {
             Route::middleware('api')
-                ->prefix('api')
+                ->prefix('api/batching')
                 ->group(function () use ($apiPath) {
                     $this->loadRoutesFrom($apiPath);
                 });
