@@ -237,9 +237,7 @@ PHP;
                 continue;
             }
 
-            // TODO: Ver se tem algum método de quote
             $middlewares = array_map(fn(string $middleware) => "'$middleware'", $middlewares);
-
             $middlewaresString = implode(', ', $middlewares);
             $tablesBlock[] = "Route::get('/{$table['name']}', [Batching::class, 'find'])->middleware([$middlewaresString]);";
         }
