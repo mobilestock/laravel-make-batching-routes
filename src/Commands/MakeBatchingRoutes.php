@@ -266,7 +266,6 @@ PHP;
 
             $middlewareRemotion = '';
             if (!empty($middlewares)) {
-                // TODO: Simplificar, como o de cima
                 $middlewares = array_map(function (string $middleware): string {
                     $parts = explode(':', $middleware);
                     $middleware = current($parts);
