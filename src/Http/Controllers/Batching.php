@@ -5,7 +5,7 @@ namespace MobileStock\MakeBatchingRoutes\Http\Controllers;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Request;
-use Illuminate\Support\Str;
+use MobileStock\MakeBatchingRoutes\Utils\ClassNameSanitize;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -27,11 +27,7 @@ class Batching
                 continue;
             }
 
-            $path = $file->getRealPath();
-            $relativePath = Str::after($path, $modelPath . DIRECTORY_SEPARATOR);
-            $class = str_replace(['/', '.php'], ['\\', ''], $relativePath);
-            $class = "\\$namespace\\Models\\" . Str::studly($class);
-
+            $class = ClassNameSanitize::sanitizeModel($file);
             if (!class_exists($class)) {
                 continue;
             }

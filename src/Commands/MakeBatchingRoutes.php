@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use MobileStock\MakeBatchingRoutes\HasBatchingFindEndpoint;
+use MobileStock\MakeBatchingRoutes\Utils\ClassNameSanitize;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use ReflectionClass;
@@ -83,12 +84,7 @@ class MakeBatchingRoutes extends Command
                 continue;
             }
 
-            // TODO: Criar um Helper pra isso nn ficar duplicado com a model
-            $path = $file->getRealPath();
-            $relativePath = Str::after($path, $modelPath . DIRECTORY_SEPARATOR);
-            $class = str_replace(['/', '.php'], ['\\', ''], $relativePath);
-            $class = "\\$this->projectNamespace\\Models\\" . Str::studly($class);
-
+            $class = ClassNameSanitize::sanitizeModel($file);
             if (!class_exists($class)) {
                 continue;
             }
