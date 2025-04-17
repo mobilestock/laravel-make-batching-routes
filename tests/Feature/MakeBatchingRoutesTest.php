@@ -56,18 +56,6 @@ PHP;
     expect($models)->toBeArray()->toHaveCount($modelCount);
 })->with('datasetNamespaces');
 
-it('should insert controller correctly', function () {
-    App::partialMock()
-        ->shouldReceive('path')
-        ->with('Http/Controllers')
-        ->once()
-        ->andReturn(__DIR__ . '/../Temp/Http/Controllers');
-    File::partialMock()->shouldReceive('put')->once();
-
-    $this->command->projectNamespace = 'App';
-    $this->command->insertController();
-});
-
 it('should return columns from sql schema', function () {
     $schemaContent = <<<SQL
 CREATE TABLE `test_table` (
@@ -173,18 +161,6 @@ it('should create :dataset factory', function (int $putTimesCalled, bool $factor
         "'updated_at' => now(),",
     ]);
 })->with('datasetFactoriesGenerator');
-
-it('should create controller', function () use ($BASE_PATH) {
-    App::partialMock()
-        ->shouldReceive('path')
-        ->with('Http/Controllers')
-        ->once()
-        ->andReturn("$BASE_PATH/Http/Controllers");
-    File::partialMock()->shouldReceive('put')->once();
-
-    $this->command->projectNamespace = 'Tests\\Temp';
-    $this->command->insertController();
-});
 
 dataset('datasetWithAndWithoutMiddlewares', function () {
     return [
@@ -299,8 +275,6 @@ it('should handle the command correctly', function () {
         ->shouldReceive('getModelsReflections')
         ->once()
         ->andReturn([new ReflectionClass('\\Tests\\Temp\\Models\\Test')])
-        ->shouldReceive('insertController')
-        ->once()
         ->shouldReceive('getTableColumnsFromSchema')
         ->with($tableName)
         ->once()
@@ -317,6 +291,9 @@ it('should handle the command correctly', function () {
         ->once()
         ->shouldReceive('insertTestFile')
         ->with($tables)
+        ->once()
+        ->shouldReceive('info')
+        ->with('Batching routes generated successfully')
         ->once()
         ->getMock()
         ->handle();

@@ -47,7 +47,6 @@ class MakeBatchingRoutes extends Command
         }
 
         Artisan::call('schema:dump');
-        $this->insertController();
         $tables = [];
 
         foreach ($reflections as $modelReflection) {
@@ -227,102 +226,6 @@ PHP;
         File::put("$factoriesPath/{$fileName}Factory.php", $factoryContent);
     }
 
-    // TODO: Jogar pra lib
-    public function insertController(): void
-    {
-        $controllerFile = <<<PHP
-<?php
-
-namespace $this->projectNamespace\Http\Controllers;
-
-use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Request;
-use Illuminate\Support\Str;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-
-class Batching
-{
-    public function find()
-    {
-        \$uriPath = Request::path();
-        \$uriPath = str_replace('api/batching/', '', \$uriPath);
-
-        \$namespace = App::getNamespace();
-        \$namespace = rtrim(\$namespace, '\\\\');
-
-        \$modelPath = App::path('Models');
-        \$files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(\$modelPath));
-        foreach (\$files as \$file) {
-            if (\$file->isDir() || \$file->getExtension() !== 'php') {
-                continue;
-            }
-
-            \$path = \$file->getRealPath();
-            \$relativePath = Str::after(\$path, \$modelPath . DIRECTORY_SEPARATOR);
-            \$class = str_replace(['/', '.php'], ['\\\\', ''], \$relativePath);
-            \$class = "\\\\\$namespace\\\\Models\\\\" . Str::studly(\$class);
-
-            if (!class_exists(\$class)) {
-                continue;
-            }
-
-            \$model = App::make(\$class);
-            \$tableName = \$model->getTable();
-            if (\$tableName === \$uriPath) {
-                break;
-            }
-
-            \$model = null;
-        }
-
-        if (empty(\$model)) {
-            throw new NotFoundHttpException("Model não encontrada pra tabela: \$uriPath");
-        }
-
-        Request::validate([
-            'limit' => ['nullable', 'integer', 'min:0', 'max:1000'],
-            'page' => ['nullable', 'integer', 'min:1'],
-        ]);
-
-        \$requestData = Request::all();
-        \$limit = \$requestData['limit'] ?? 1000;
-        \$page = \$requestData['page'] ?? 1;
-        \$offset = \$limit * (\$page - 1);
-
-        /** @var \Illuminate\Database\Eloquent\Builder \$query */
-        \$query = \$model::query()->limit(\$limit)->offset(\$offset);
-
-        \$requestData = Arr::except(\$requestData, ['limit', 'page']);
-        foreach (\$requestData as \$key => \$value) {
-            \$query->whereIn(\$key, \$value);
-        }
-
-        \$databaseValues = \$query->get()->toArray();
-        if (empty(\$requestData)) {
-            return \$databaseValues;
-        }
-
-        // TODO: Documentar que se você quiser um ordenamento e estiver enviando vários parâmetros, o que deve usar pra ordenar tem que ser o primeiro indice
-        \$key = current(array_keys(\$requestData));
-        \$sorter = current(\$requestData);
-        usort(\$databaseValues, function (array \$a, array \$b) use (\$key, \$sorter): int {
-            \$indexA = array_search(\$a[\$key], \$sorter);
-            \$indexB = array_search(\$b[\$key], \$sorter);
-            return \$indexA <=> \$indexB;
-        });
-
-        return \$databaseValues;
-    }
-}
-
-PHP;
-        $controllerPath = App::path('Http/Controllers');
-        File::put("$controllerPath/Batching.php", $controllerFile);
-    }
-
     public function insertAPIRouteFile(array $tables): void
     {
         $tablesBlock = [];
@@ -345,7 +248,7 @@ PHP;
         $apiFileContent = <<<PHP
 <?php
 
-use $this->projectNamespace\Http\Controllers\Batching;
+use MobileStock\MakeBatchingRoutes\Http\Controllers\Batching;
 use Illuminate\Support\Facades\Route;
 
 $tablesBlock
@@ -412,7 +315,7 @@ PHP;
         $testContent = <<<PHP
 <?php
 
-use $this->projectNamespace\Http\Controllers\Batching;
+use MobileStock\MakeBatchingRoutes\Http\Controllers\Batching;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\App;
