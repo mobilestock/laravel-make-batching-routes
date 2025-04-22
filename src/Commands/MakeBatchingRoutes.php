@@ -67,7 +67,6 @@ class MakeBatchingRoutes extends Command
         $this->insertAPIRouteFile($tables);
         $this->insertTestFile($tables);
         $this->info('Batching routes generated successfully');
-        // TODO: Documentar no storybook
     }
 
     /**
