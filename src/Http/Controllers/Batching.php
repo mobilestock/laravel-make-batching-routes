@@ -68,7 +68,6 @@ class Batching
             return $databaseValues;
         }
 
-        // TODO: Documentar que se você quiser um ordenamento e estiver enviando vários parâmetros, o que deve usar pra ordenar tem que ser o primeiro indice
         $key = current(array_keys($requestData));
         $sorter = current($requestData);
         usort($databaseValues, function (array $a, array $b) use ($key, $sorter): int {
