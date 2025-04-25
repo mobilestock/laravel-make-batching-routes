@@ -72,7 +72,7 @@ class MakeBatchingRoutes extends Command
     /**
      * @return array<ReflectionClass>
      */
-    public function getModelsReflections(): array
+    protected function getModelsReflections(): array
     {
         $modelsToGenerate = [];
         $modelPath = App::path('Models');
@@ -97,7 +97,7 @@ class MakeBatchingRoutes extends Command
         return $modelsToGenerate;
     }
 
-    public function getTableColumnsFromSchema(string $tableName): array
+    protected function getTableColumnsFromSchema(string $tableName): array
     {
         $schemaPath = App::databasePath('schema/mysql-schema.sql');
         if (!File::exists($schemaPath)) {
@@ -122,7 +122,7 @@ class MakeBatchingRoutes extends Command
     }
 
     // @issue: https://github.com/mobilestock/backend/issues/891
-    public function convertColumnsToFactoryDefinitions(array $columns): array
+    protected function convertColumnsToFactoryDefinitions(array $columns): array
     {
         $fields = [];
         $primaryColumn = current(array_keys($columns));
@@ -169,7 +169,7 @@ class MakeBatchingRoutes extends Command
         return $fields;
     }
 
-    public function insertFactoryFiles(string $fileName, array $fields): void
+    protected function insertFactoryFiles(string $fileName, array $fields): void
     {
         $factoriesPath = App::databasePath('factories');
         File::ensureDirectoryExists("$factoriesPath/Batching");
@@ -188,7 +188,7 @@ use MobileStock\MakeBatchingRoutes\Faker\TypesProvider;
  */
 class {$fileName}BaseFactory extends Factory
 {
-    public function definition(): array
+    protected function definition(): array
     {
         \$this->faker->addProvider(new TypesProvider(\$this->faker));
 
@@ -221,7 +221,7 @@ PHP;
         File::put("$factoriesPath/{$fileName}Factory.php", $factoryContent);
     }
 
-    public function insertAPIRouteFile(array $tables): void
+    protected function insertAPIRouteFile(array $tables): void
     {
         $tablesBlock = [];
         foreach ($tables as $modelClassName => $table) {
@@ -252,7 +252,7 @@ PHP;
         File::put($apiPath, $apiFileContent);
     }
 
-    public function insertTestFile(array $tables): void
+    protected function insertTestFile(array $tables): void
     {
         $tests = [];
         foreach ($tables as $modelNamespace => $table) {

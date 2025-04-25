@@ -1,6 +1,6 @@
 {
   "name": "mobilestock/laravel-make-batching-routes",
-  "description": "This library adds a route generator, controller, model and automated tests.",
+  "description": "This library adds a route generator, model and automated tests.",
   "type": "library",
   "license": "MIT",
   "authors": [

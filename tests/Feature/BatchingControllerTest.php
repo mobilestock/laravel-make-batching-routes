@@ -4,12 +4,8 @@ use MobileStock\MakeBatchingRoutes\Http\Controllers\Batching;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 it('should jump if class does not exist', function () {
-    $modelPath = App::partialMock()
-        ->shouldReceive('getNamespace')
-        ->once()
-        ->andReturn('Fake\\')
-        ->getMock()
-        ->path('Models');
+    App::partialMock()->shouldReceive('getNamespace')->once()->andReturn('Fake\\');
+    $modelPath = App::path('Models');
     File::ensureDirectoryExists($modelPath);
 
     $controller = new Batching();
@@ -17,6 +13,6 @@ it('should jump if class does not exist', function () {
 })->throws(NotFoundHttpException::class, 'Model não encontrada pra tabela: /');
 
 afterAll(function () {
-    $modelPath = App::partialMock()->path('Models');
+    $modelPath = App::path('Models');
     File::deleteDirectory($modelPath);
 });

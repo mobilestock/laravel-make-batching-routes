@@ -3,21 +3,23 @@
 use Faker\Factory;
 use MobileStock\MakeBatchingRoutes\Faker\TypesProvider;
 
+$REGEXP_COORDINATES = '-?\d+(\.\d+)?';
+
 beforeEach(function () {
     $faker = Factory::create();
     $faker->addProvider(new TypesProvider($faker));
     $this->typesProvider = $faker;
 });
 
-it('should generates a valid POINT string', function () {
+it('should generates a valid POINT string', function () use ($REGEXP_COORDINATES) {
     $point = $this->typesProvider->point();
-    expect($point)->toMatch('/^POINT\(-?\d+(\.\d+)? -?\d+(\.\d+)?\)$/');
+    expect($point)->toMatch("/^POINT\($REGEXP_COORDINATES $REGEXP_COORDINATES\)$/");
 });
 
-it('should generates a valid POLYGON string', function () {
+it('should generates a valid POLYGON string', function () use ($REGEXP_COORDINATES) {
     $polygon = $this->typesProvider->polygon();
     expect($polygon)->toMatch(
-        '/^POLYGON\(\((-?\d+(\.\d+)? -?\d+(\.\d+)?(,-?\d+(\.\d+)? -?\d+(\.\d+)?){2},-?\d+(\.\d+)? -?\d+(\.\d+)?)\)\)$/'
+        "/^POLYGON\(\(($REGEXP_COORDINATES $REGEXP_COORDINATES(,$REGEXP_COORDINATES $REGEXP_COORDINATES){2},$REGEXP_COORDINATES $REGEXP_COORDINATES)\)\)$/"
     );
 });
 

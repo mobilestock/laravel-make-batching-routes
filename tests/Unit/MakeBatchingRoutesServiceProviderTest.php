@@ -22,7 +22,7 @@ it('should calls boot correctly', function () {
         ->shouldAllowMockingProtectedMethods()
         ->shouldReceive('loadRoutesFrom')
         ->once()
-        ->withArgs(fn(string $path): bool => str_contains($path, 'BatchingApi.php'))
+        ->with($apiPath)
         ->getMock()
         ->boot();
     File::delete($apiPath);
