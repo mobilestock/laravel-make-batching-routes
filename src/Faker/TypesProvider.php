@@ -34,18 +34,12 @@ class TypesProvider extends Base
             throw new \InvalidArgumentException('randomLetters() can only generate text of at least 1 characters');
         }
 
-        $letters = array_map(fn(): string => static::randomLetter(), range(0, $maxLength - 1));
-        $letters = implode('', $letters);
+        $letters = '';
+        for ($i = 0; $i < $maxLength; $i++) {
+            $letters .= static::randomLetter();
+        }
 
         return $letters;
-    }
-
-    public function phoneNumberBR(): string
-    {
-        $parsed = $this->generator->parse('###########');
-        $phoneNumber = static::numerify($parsed);
-
-        return $phoneNumber;
     }
 
     public function document(): string

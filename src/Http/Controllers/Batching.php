@@ -2,7 +2,6 @@
 
 namespace MobileStock\MakeBatchingRoutes\Http\Controllers;
 
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Request;
 use MobileStock\MakeBatchingRoutes\Utils\ClassNameSanitize;
@@ -15,7 +14,7 @@ class Batching
     public function find()
     {
         $uriPath = Request::path();
-        $uriPath = str_replace('api/batching/', '', $uriPath);
+        $routeResource = str_replace('api/batching/', '', $uriPath);
 
         $namespace = App::getNamespace();
         $namespace = rtrim($namespace, '\\');
@@ -34,7 +33,7 @@ class Batching
 
             $model = App::make($class);
             $tableName = $model->getTable();
-            if ($tableName === $uriPath) {
+            if ($tableName === $routeResource) {
                 break;
             }
 
@@ -42,23 +41,22 @@ class Batching
         }
 
         if (empty($model)) {
-            throw new NotFoundHttpException("Model não encontrada pra tabela: $uriPath");
+            throw new NotFoundHttpException("Model não encontrada pra tabela: $routeResource");
         }
 
-        Request::validate([
+        $paginationOptions = Request::validate([
             'limit' => ['nullable', 'integer', 'min:0', 'max:1000'],
             'page' => ['nullable', 'integer', 'min:1'],
         ]);
 
-        $requestData = Request::all();
-        $limit = $requestData['limit'] ?? 1000;
-        $page = $requestData['page'] ?? 1;
+        $limit = $paginationOptions['limit'] ?? 1000;
+        $page = $paginationOptions['page'] ?? 1;
         $offset = $limit * ($page - 1);
 
-        /** @var \Illuminate\Database\Eloquent\Builder $query */
+        /** @var \Illuminate\Database\Eloquent\Model $model*/
         $query = $model::query()->limit($limit)->offset($offset);
 
-        $requestData = Arr::except($requestData, ['limit', 'page']);
+        $requestData = Request::except(['limit', 'page']);
         foreach ($requestData as $key => $value) {
             $query->whereIn($key, $value);
         }

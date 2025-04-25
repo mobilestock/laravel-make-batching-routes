@@ -36,11 +36,11 @@ it('should :dataset models', function (string $nameSpace, int $modelCount) use (
 namespace Tests\Temp\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use MobileStock\MakeBatchingRoutes\HasBatchingFindEndpoint;
+use MobileStock\MakeBatchingRoutes\HasBatchingEndpoint;
 
 class Test extends Model
 {
-    use HasBatchingFindEndpoint;
+    use HasBatchingEndpoint;
 }
 PHP;
 

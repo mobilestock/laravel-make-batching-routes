@@ -3,19 +3,19 @@
 use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Foundation\Http\Middleware\TrimStrings;
 use Illuminate\Routing\Middleware\SubstituteBindings;
-use MobileStock\MakeBatchingRoutes\HasBatchingFindEndpoint;
+use MobileStock\MakeBatchingRoutes\HasBatchingEndpoint;
 
 dataset('datasetMiddlewares', function () {
     return [
         'default' => [
             new class {
-                use HasBatchingFindEndpoint;
+                use HasBatchingEndpoint;
             },
             [Authenticate::class],
         ],
         'no' => [
             new class {
-                use HasBatchingFindEndpoint;
+                use HasBatchingEndpoint;
 
                 protected static $middlewares = [];
             },
@@ -23,7 +23,7 @@ dataset('datasetMiddlewares', function () {
         ],
         'custom' => [
             new class {
-                use HasBatchingFindEndpoint;
+                use HasBatchingEndpoint;
 
                 protected static $middlewares = [
                     SubstituteBindings::class,

@@ -30,11 +30,6 @@ it('throws exception when generating random letters with invalid length', functi
     $this->typesProvider->randomLetters(0);
 })->throws(InvalidArgumentException::class);
 
-it('should generates a valid Brazilian phone number', function () {
-    $phoneNumber = $this->typesProvider->phoneNumberBR();
-    expect($phoneNumber)->toMatch('/^\d{11}$/');
-});
-
 it('should generates a valid document number', function () {
     $document = $this->typesProvider->document();
     expect($document)->toMatch('/^(\d{11}|\d{8}0001\d{2})$/');

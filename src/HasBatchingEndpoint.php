@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 /**
  * @property array<class-string> $middlewares
  */
-trait HasBatchingFindEndpoint
+trait HasBatchingEndpoint
 {
     use HasFactory;
 

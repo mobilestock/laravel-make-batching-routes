@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
-use MobileStock\MakeBatchingRoutes\HasBatchingFindEndpoint;
+use MobileStock\MakeBatchingRoutes\HasBatchingEndpoint;
 use MobileStock\MakeBatchingRoutes\Utils\ClassNameSanitize;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -28,7 +28,7 @@ class MakeBatchingRoutes extends Command
      *
      * @var string
      */
-    protected $description = 'Factory, controller, api and test generator to batching';
+    protected $description = 'Factory, api route and test generator to batching';
 
     public string $projectNamespace;
 
@@ -89,7 +89,7 @@ class MakeBatchingRoutes extends Command
             }
 
             $traits = trait_uses_recursive($class);
-            if (array_key_exists(HasBatchingFindEndpoint::class, $traits)) {
+            if (array_key_exists(HasBatchingEndpoint::class, $traits)) {
                 $modelsToGenerate[] = new ReflectionClass($class);
             }
         }
@@ -142,10 +142,10 @@ class MakeBatchingRoutes extends Command
             preg_match('/\((.+)\)/', $columnType, $matches);
             $fields[] = match (true) {
                 Str::contains($columnName, 'avatar') => "'$columnName' => \$this->faker{$uniqueKey}->imageUrl(),",
-                Str::contains($columnName, 'phone') => "'$columnName' => \$this->faker{$uniqueKey}->phoneNumberBR(),",
+                // TODO: Colocar na documentação que precisa mudar o faker_locale para pt_BR
+                Str::contains($columnName, 'phone')
+                    => "'$columnName' => \$this->faker{$uniqueKey}->cellphoneNumber(false),",
                 Str::contains($columnName, 'document') => "'$columnName' => \$this->faker{$uniqueKey}->document(),",
-                Str::contains($columnName, 'latitude') => "'$columnName' => \$this->faker{$uniqueKey}->latitude(),",
-                Str::contains($columnName, 'longitude') => "'$columnName' => \$this->faker{$uniqueKey}->longitude(),",
                 Str::contains($columnType, 'tinyint(1)') => "'$columnName' => \$this->faker{$uniqueKey}->boolean(),",
                 Str::contains($columnType, 'int')
                     => "'$columnName' => \$this->faker{$uniqueKey}->numberBetween(1, 64),",
@@ -181,6 +181,7 @@ class MakeBatchingRoutes extends Command
 namespace Database\Factories\Batching;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use MobileStock\MakeBatchingRoutes\Faker\TypesProvider;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\\$this->projectNamespace\\Models\\$fileName>
@@ -189,7 +190,7 @@ class {$fileName}BaseFactory extends Factory
 {
     public function definition(): array
     {
-        \$this->faker->addProvider(new \\MobileStock\\MakeBatchingRoutes\\Faker\\TypesProvider(\$this->faker));
+        \$this->faker->addProvider(new TypesProvider(\$this->faker));
 
         return [
             $fields
@@ -279,18 +280,18 @@ PHP;
             $queryParams = implode(PHP_EOL . '    ', $queryParams);
 
             $tests[] = <<<PHP
-it('should retrieves all values from the {$table['name']} with sorting', function () {
-    \$values = \\$modelNamespace::withoutEvents(fn() => \\$modelNamespace::factory(3)->create());
+it('should retrieves all values from {$table['name']} with controller sorting', function () {
+    \$values = \\$modelNamespace::withoutEvents(fn() => \\$modelNamespace::factory(MODEL_INSTANCES_COUNT)->create());
     $queryParams
 
     \$query = http_build_query(\$queryParams);
     \$response = \$this{$middlewareRemotion}->get("api/batching/{$table['name']}?\$query");
-    \$response->assertStatus(Response::HTTP_OK);
+    \$response->assertOk();
     \$response->assertJson(\$values->toArray());
 });
 
-it('should retrieves all values from the {$table['name']} without sorting', function () {
-    \$values = \\$modelNamespace::withoutEvents(fn() => \\$modelNamespace::factory(3)->create());
+it('should retrieves all values from {$table['name']} without controller sorting', function () {
+    \$values = \\$modelNamespace::withoutEvents(fn() => \\$modelNamespace::factory(MODEL_INSTANCES_COUNT)->create());
     \$request = Request::create('api/batching/users');
     Request::swap(\$request);
 
@@ -308,11 +309,12 @@ PHP;
 
 use MobileStock\MakeBatchingRoutes\Http\Controllers\Batching;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Request;
 
 uses(RefreshDatabase::class);
+
+const MODEL_INSTANCES_COUNT = 3;
 
 $testContent
 

@@ -11,13 +11,13 @@ class ClassNameSanitize
     public static function sanitizeModel(SplFileInfo $file): string
     {
         $modelPath = App::path('Models');
-        $nameSpace = App::getNamespace();
-        $nameSpace = rtrim($nameSpace, '\\');
+        $namespace = App::getNamespace();
+        $namespace = rtrim($namespace, '\\');
 
         $path = $file->getRealPath();
         $relativePath = Str::after($path, $modelPath . DIRECTORY_SEPARATOR);
         $className = Str::replace(['/', '.php'], ['\\', ''], $relativePath);
-        $className = "\\$nameSpace\\Models\\" . Str::studly($className);
+        $className = "\\$namespace\\Models\\" . Str::studly($className);
 
         return $className;
     }
