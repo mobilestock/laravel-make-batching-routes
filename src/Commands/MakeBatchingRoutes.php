@@ -142,7 +142,6 @@ class MakeBatchingRoutes extends Command
             preg_match('/\((.+)\)/', $columnType, $matches);
             $fields[] = match (true) {
                 Str::contains($columnName, 'avatar') => "'$columnName' => \$this->faker{$uniqueKey}->imageUrl(),",
-                // TODO: Colocar na documentação que precisa mudar o faker_locale para pt_BR
                 Str::contains($columnName, 'phone')
                     => "'$columnName' => \$this->faker{$uniqueKey}->cellphoneNumber(false),",
                 Str::contains($columnName, 'document') => "'$columnName' => \$this->faker{$uniqueKey}->document(),",
