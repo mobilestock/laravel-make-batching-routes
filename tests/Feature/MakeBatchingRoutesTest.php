@@ -52,7 +52,7 @@ PHP;
         ->shouldReceive('getNamespace')
         ->andReturn($nameSpace);
 
-    $models = $this->command->getModelsReflections();
+    $models = invokeProtectedMethod($this->command, 'getModelsReflections');
     expect($models)->toBeArray()->toHaveCount($modelCount);
 })->with('datasetNamespaces');
 
@@ -74,7 +74,7 @@ SQL;
         ->once()
         ->andReturn($schemaContent);
 
-    $columns = $this->command->getTableColumnsFromSchema('test_table');
+    $columns = invokeProtectedMethod($this->command, 'getTableColumnsFromSchema', ['test_table']);
     expect($columns)->toMatchArray([
         'id' => 'int(11)',
         'name' => 'varchar(255)',
@@ -86,26 +86,28 @@ SQL;
 it('should not found schema', function () {
     File::partialMock()->shouldReceive('exists')->once()->andReturnFalse();
 
-    $this->command->getTableColumnsFromSchema('not_found');
+    invokeProtectedMethod($this->command, 'getTableColumnsFromSchema', ['not_found']);
 })->throws(DomainException::class, 'O arquivo de schema não foi encontrado');
 
 it('should not find table in sql schema', function () {
     File::partialMock()->shouldReceive('exists')->once()->andReturnTrue()->shouldReceive('get')->once()->andReturn('');
 
-    $this->command->getTableColumnsFromSchema('not_found');
+    invokeProtectedMethod($this->command, 'getTableColumnsFromSchema', ['not_found']);
 })->throws(DomainException::class, 'Tabela não encontrada');
 
 it('should convert columns correctly', function () {
-    $convertedColumns = $this->command->convertColumnsToFactoryDefinitions([
-        'id' => 'int(11)',
-        'name' => 'varchar(255)',
-        'state' => 'char(2)',
-        'note' => 'decimal(10,2)',
-        'status' => "enum('PENDING', 'APPROVED', 'REJECTED')",
-        'permissions' => "set('READ', 'WRITE')",
-        'foo' => 'whatever',
-        'created_at' => 'timestamp',
-        'updated_at' => 'timestamp',
+    $convertedColumns = invokeProtectedMethod($this->command, 'convertColumnsToFactoryDefinitions', [
+        [
+            'id' => 'int(11)',
+            'name' => 'varchar(255)',
+            'state' => 'char(2)',
+            'note' => 'decimal(10,2)',
+            'status' => "enum('PENDING', 'APPROVED', 'REJECTED')",
+            'permissions' => "set('READ', 'WRITE')",
+            'foo' => 'whatever',
+            'created_at' => 'timestamp',
+            'updated_at' => 'timestamp',
+        ],
     ]);
 
     expect($convertedColumns)->toMatchArray([
@@ -126,7 +128,7 @@ dataset('datasetDataTypes', function () {
 });
 
 it('should not found :dataset options', function (string $type) {
-    $this->command->convertColumnsToFactoryDefinitions(['foo' => "$type()"]);
+    invokeProtectedMethod($this->command, 'convertColumnsToFactoryDefinitions', [['foo' => "$type()"]]);
 })
     ->with('datasetDataTypes')
     ->throws(DomainException::class);
@@ -154,11 +156,14 @@ it('should create :dataset factory', function (int $putTimesCalled, bool $factor
         ->andReturn($factoryAlreadyExists);
 
     $this->command->projectNamespace = 'Tests\\Temp';
-    $this->command->insertFactoryFiles('Test', [
-        "'id' => \$this->faker->unique()->numberBetween(1, 64),",
-        "'name' => \$this->faker->text(255),",
-        "'created_at' => now(),",
-        "'updated_at' => now(),",
+    invokeProtectedMethod($this->command, 'insertFactoryFiles', [
+        'Test',
+        [
+            "'id' => \$this->faker->unique()->numberBetween(1, 64),",
+            "'name' => \$this->faker->text(255),",
+            "'created_at' => now(),",
+            "'updated_at' => now(),",
+        ],
     ]);
 })->with('datasetFactoriesGenerator');
 
@@ -196,7 +201,9 @@ it('should insert API route :dataset middlewares correctly', function (
     File::partialMock()->shouldReceive('put')->once();
 
     $this->command->projectNamespace = 'Tests\\Temp';
-    $this->command->insertAPIRouteFile([$modelNamespace => ['name' => $tableName]]);
+    invokeProtectedMethod($this->command, 'insertAPIRouteFile', [
+        [$modelNamespace => ['name' => $tableName, 'columns' => ['id', 'name']]],
+    ]);
 })->with('datasetWithAndWithoutMiddlewares');
 
 it('should insert tests :dataset middlewares correctly', function (
@@ -222,7 +229,9 @@ it('should insert tests :dataset middlewares correctly', function (
     File::partialMock()->shouldReceive('put')->once();
 
     $this->command->projectNamespace = 'Tests\\Temp';
-    $this->command->insertTestFile([$modelNamespace => ['name' => $tableName, 'columns' => ['id', 'name']]]);
+    invokeProtectedMethod($this->command, 'insertTestFile', [
+        [$modelNamespace => ['name' => $tableName, 'columns' => ['id', 'name']]],
+    ]);
 })->with('datasetWithAndWithoutMiddlewares');
 
 it('should handle the command correctly', function () {
@@ -272,6 +281,7 @@ it('should handle the command correctly', function () {
 
     Mockery::mock(MakeBatchingRoutes::class)
         ->makePartial()
+        ->shouldAllowMockingProtectedMethods()
         ->shouldReceive('getModelsReflections')
         ->once()
         ->andReturn([new ReflectionClass('\\Tests\\Temp\\Models\\Test')])
@@ -303,6 +313,7 @@ it('should show error if not found models reflections', function () {
     App::partialMock()->shouldReceive('getNamespace')->once()->andReturn('Tests\\Temp\\');
     Mockery::mock(MakeBatchingRoutes::class)
         ->makePartial()
+        ->shouldAllowMockingProtectedMethods()
         ->shouldReceive('getModelsReflections')
         ->once()
         ->andReturn([])
