@@ -48,7 +48,7 @@ class MakeBatchingRoutes extends Command
         }
 
         Artisan::call('schema:dump');
-        $tables = [];
+        $models = [];
 
         foreach ($reflections as $modelReflection) {
             $fileName = $modelReflection->getShortName();
@@ -58,14 +58,14 @@ class MakeBatchingRoutes extends Command
             $hiddenColumns = $model->getHidden();
             $columns = $this->getTableColumnsFromSchema($tableName);
             $columns = array_diff_key($columns, array_flip($hiddenColumns));
-            $tables[$modelReflection->name] = ['name' => $tableName, 'columns' => array_keys($columns)];
+            $models[$modelReflection->name] = ['name' => $tableName, 'columns' => array_keys($columns)];
 
             $fields = $this->convertColumnsToFactoryDefinitions($columns);
             $this->insertFactoryFiles($fileName, $fields);
         }
 
-        $this->insertAPIRouteFile($tables);
-        $this->insertTestFile($tables);
+        $this->insertAPIRouteFile($models);
+        $this->insertTestFile($models);
         $this->info('Batching routes generated successfully');
     }
 
@@ -220,10 +220,10 @@ PHP;
         File::put("$factoriesPath/{$fileName}Factory.php", $factoryContent);
     }
 
-    protected function insertAPIRouteFile(array $tables): void
+    protected function insertAPIRouteFile(array $models): void
     {
         $tablesBlock = [];
-        foreach ($tables as $modelClassName => $table) {
+        foreach ($models as $modelClassName => $table) {
             $model = App::make($modelClassName);
             $middlewares = $model::getBatchingMiddlewares();
             if (empty($middlewares)) {
@@ -251,10 +251,10 @@ PHP;
         File::put($apiPath, $apiFileContent);
     }
 
-    protected function insertTestFile(array $tables): void
+    protected function insertTestFile(array $models): void
     {
         $tests = [];
-        foreach ($tables as $modelNamespace => $table) {
+        foreach ($models as $modelNamespace => $table) {
             $model = App::make($modelNamespace);
             $middlewares = $model::getBatchingMiddlewares();
 
