@@ -10,6 +10,16 @@ beforeEach(function () use ($MODEL_PATH) {
     File::ensureDirectoryExists($MODEL_PATH);
 });
 
+it('should jump if file does not exist', function () use ($MODEL_PATH) {
+    App::partialMock()
+        ->shouldReceive('getNamespace')
+        ->once()
+        ->andReturn('Tests\\Temp\\')
+        ->shouldReceive('path')
+        ->with('Models')
+        ->once()
+        ->andReturn($MODEL_PATH);
+
     $controller = new Batching();
     $controller->find();
 })->throws(NotFoundHttpException::class, 'Model não encontrada pra tabela: /');
