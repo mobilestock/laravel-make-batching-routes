@@ -28,6 +28,17 @@ it('should calls boot correctly', function () {
     File::delete($apiPath);
 });
 
+it('should not call boot if the file does not exist', function () {
+    File::partialMock()->shouldReceive('exists')->once()->andReturnFalse();
+
+    Mockery::mock(MakeBatchingRoutesServiceProvider::class)
+        ->makePartial()
+        ->shouldAllowMockingProtectedMethods()
+        ->shouldNotReceive('loadRoutesFrom')
+        ->getMock()
+        ->boot();
+});
+
 it('should registers commands correctly', function () {
     Mockery::mock(MakeBatchingRoutesServiceProvider::class)
         ->makePartial()
