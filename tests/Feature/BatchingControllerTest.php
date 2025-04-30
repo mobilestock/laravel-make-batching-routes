@@ -38,7 +38,6 @@ it('should jump if class does not exist', function () use ($MODEL_PATH) {
     $controller->find();
 })->throws(NotFoundHttpException::class, 'Model não encontrada pra tabela: /');
 
-afterAll(function () {
-    $modelPath = App::path('Models');
-    File::deleteDirectory($modelPath);
+afterAll(function () use ($MODEL_PATH) {
+    File::deleteDirectory($MODEL_PATH);
 });
