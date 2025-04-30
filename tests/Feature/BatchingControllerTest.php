@@ -18,7 +18,7 @@ it('should jump if file does not exist', function () use ($MODEL_PATH) {
         ->shouldReceive('path')
         ->with('Models')
         ->once()
-        ->andReturn($MODEL_PATH);
+        ->andReturn('/laravel-make-batching-routes/tests/Temp/Models');
 
     $controller = new Batching();
     $controller->find();
