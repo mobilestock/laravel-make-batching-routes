@@ -31,34 +31,23 @@ it('should jump if class does not exist', function () use ($MODEL_PATH) {
         ->shouldReceive('path')
         ->with('Models')
         ->andReturn($MODEL_PATH);
-    File::put("$MODEL_PATH/NotFindClass.php", '<?php namespace Tests\Temp\Models; class NotFindClass extends Model {}');
+    File::put("$MODEL_PATH/NotFindClass.php", '<?php namespace Tests\Temp\Models; class NotFindClass {}');
 
     $controller = new Batching();
     $controller->find();
 })->throws(NotFoundHttpException::class, 'Model não encontrada pra tabela: /');
 
 it('should jump if not find the table', function () use ($MODEL_PATH) {
-    $modelContent = <<<PHP
-<?php
-
-namespace Tests\Temp\Models;
-
-use Illuminate\Database\Eloquent\Model;
-use MobileStock\MakeBatchingRoutes\HasBatchingEndpoint;
-
-class NotFindTable extends Model
-{
-    use HasBatchingEndpoint;
-}
-PHP;
-
-    File::put("$MODEL_PATH/NotFindTable.php", $modelContent);
     App::partialMock()
         ->shouldReceive('getNamespace')
         ->andReturn('Tests\\Temp\\')
         ->shouldReceive('path')
         ->with('Models')
         ->andReturn('/laravel-make-batching-routes/tests/Temp/Models');
+    File::put(
+        "$MODEL_PATH/NotFindTable.php",
+        '<?php namespace Tests\Temp\Models; class NotFindTable extends \Illuminate\Database\Eloquent\Model {}'
+    );
 
     $controller = new Batching();
     $controller->find();
