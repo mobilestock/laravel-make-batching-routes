@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use MobileStock\MakeBatchingRoutes\Commands\MakeBatchingRoutes;
 
-// TODO: composer update antes de enviar a tarefa
 class MakeBatchingRoutesServiceProvider extends ServiceProvider
 {
     public function boot(): void
