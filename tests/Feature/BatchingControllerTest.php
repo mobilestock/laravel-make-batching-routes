@@ -58,12 +58,12 @@ it('should jump if not find the table', function () use ($MODEL_PATH) {
 
 dataset('datasetControllerFindWorks', function () {
     return [
-        'without sorting' => [[], [['id' => 3], ['id' => 1], ['id' => 2]]],
-        'with sorting' => [['id' => [3, 2, 1]], [['id' => 3], ['id' => 2], ['id' => 1]]],
+        'with' => [['id' => [3, 2, 1]], [['id' => 3], ['id' => 2], ['id' => 1]]],
+        'without' => [[], [['id' => 3], ['id' => 1], ['id' => 2]]],
     ];
 });
 
-it('should work correctly :dataset', function (array $parameters, array $expected) use ($MODEL_PATH) {
+it('should work correctly :dataset sorting', function (array $parameters, array $expected) use ($MODEL_PATH) {
     $request = Request::create('api/batching/find_tables', parameters: $parameters);
     Request::swap($request);
     App::partialMock()
