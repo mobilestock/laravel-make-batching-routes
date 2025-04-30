@@ -9,7 +9,6 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 $MODEL_PATH = __DIR__ . '/../Temp/Models';
 
 beforeEach(function () use ($MODEL_PATH) {
-    File::deleteDirectory($MODEL_PATH);
     File::ensureDirectoryExists($MODEL_PATH);
 });
 
@@ -39,10 +38,16 @@ it('should throws exception if no :dataset is found', function (string $filePath
     ->with('datasetControllerFindFails')
     ->throws(NotFoundHttpException::class, 'Model não encontrada pra tabela: /');
 
-dataset('datasetControllerFindWorks', function () {
+dataset('datasetControllerFindSucceeds', function () {
     return [
-        'with' => [['id' => [3, 2, 1]], [['id' => 3], ['id' => 2], ['id' => 1]]],
-        'without' => [[], [['id' => 3], ['id' => 1], ['id' => 2]]],
+        'with' => [
+            'parameters' => ['id' => [3, 2, 1]],
+            'expected' => [['id' => 3], ['id' => 2], ['id' => 1]],
+        ],
+        'without' => [
+            'parameters' => [],
+            'expected' => [['id' => 3], ['id' => 1], ['id' => 2]],
+        ],
     ];
 });
 
@@ -76,8 +81,4 @@ it('should work correctly :dataset sorting', function (array $parameters, array 
     $controller = new Batching();
     $response = $controller->find();
     expect($response)->toBe($expected);
-})->with('datasetControllerFindWorks');
-
-afterAll(function () use ($MODEL_PATH) {
-    File::deleteDirectory($MODEL_PATH);
-});
+})->with('datasetControllerFindSucceeds');
