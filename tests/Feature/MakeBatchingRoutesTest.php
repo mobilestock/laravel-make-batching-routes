@@ -2,6 +2,7 @@
 
 use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Console\Kernel;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
@@ -13,10 +14,7 @@ $MODEL_PATH = "$BASE_PATH/Models";
 
 beforeEach(function () use ($MODEL_PATH, $DATABASE_PATH) {
     foreach ([$MODEL_PATH, $DATABASE_PATH] as $path) {
-        if (File::exists($path)) {
-            File::deleteDirectory($path);
-        }
-        File::makeDirectory($path, 755, true);
+        File::ensureDirectoryExists($path);
     }
 
     $this->command = new MakeBatchingRoutes();
@@ -26,10 +24,15 @@ dataset('datasetNamespaces', function () {
     return [
         'return' => ['Tests\\Temp', 1],
         'not return' => ['', 0],
+        'not return without trait' => ['Tests\\Temp\\Models', 0, ''],
     ];
 });
 
-it('should :dataset models', function (string $nameSpace, int $modelCount) use ($MODEL_PATH) {
+it('should :dataset models', function (
+    string $nameSpace,
+    int $modelCount,
+    string $withTrait = 'use HasBatchingEndpoint;'
+) use ($MODEL_PATH) {
     $modelContent = <<<PHP
 <?php
 
@@ -40,7 +43,7 @@ use MobileStock\MakeBatchingRoutes\HasBatchingEndpoint;
 
 class Test extends Model
 {
-    use HasBatchingEndpoint;
+    $withTrait
 }
 PHP;
 
@@ -98,6 +101,7 @@ it('should not find table in sql schema', function () {
 it('should convert columns correctly', function () {
     $convertedColumns = invokeProtectedMethod($this->command, 'convertColumnsToFactoryDefinitions', [
         [
+            // TODO: Colocar todos os tipos de dados
             'id' => 'int(11)',
             'name' => 'varchar(255)',
             'state' => 'char(2)',
@@ -129,7 +133,7 @@ dataset('datasetDataTypes', function () {
     return ['enum' => 'enum', 'set' => 'set'];
 });
 
-it('should not found :dataset options', function (string $type) {
+it('should not found :dataset values', function (string $type) {
     invokeProtectedMethod($this->command, 'convertColumnsToFactoryDefinitions', [['foo' => "$type()"]]);
 })
     ->with('datasetDataTypes')
@@ -152,7 +156,7 @@ it('should create :dataset factory', function (int $putTimesCalled, bool $factor
         ->once()
         ->shouldReceive('put')
         ->times($putTimesCalled)
-        ->shouldNotReceive('exists')
+        ->shouldReceive('exists')
         ->with("$directoryPath/TestFactory.php")
         ->once()
         ->andReturn($factoryAlreadyExists);
@@ -202,7 +206,6 @@ it('should insert API route :dataset middlewares correctly', function (
         ->andReturn("$BASE_PATH/routes/batching.php");
     File::partialMock()->shouldReceive('put')->once();
 
-    $this->command->projectNamespace = 'Tests\\Temp';
     invokeProtectedMethod($this->command, 'insertAPIRouteFile', [
         [$modelNamespace => ['name' => $tableName, 'columns' => ['id', 'name']]],
     ]);
@@ -274,7 +277,7 @@ it('should handle the command correctly', function () {
         ->once()
         ->andReturn($mockModel);
 
-    $artisanMock = Mockery::mock(\Illuminate\Contracts\Console\Kernel::class)
+    $artisanMock = Mockery::mock(Kernel::class)
         ->shouldReceive('call')
         ->once()
         ->with('schema:dump')
