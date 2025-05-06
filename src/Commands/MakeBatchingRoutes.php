@@ -84,7 +84,7 @@ class MakeBatchingRoutes extends Command
                 continue;
             }
 
-            $traits = trait_uses_recursive($class);
+            $traits = class_uses_recursive($class);
             if (array_key_exists(HasBatchingEndpoint::class, $traits)) {
                 $fileName = Str::before($file->getFilename(), '.php');
                 $modelsToGenerate[] = ['className' => $class, 'fileName' => $fileName];
