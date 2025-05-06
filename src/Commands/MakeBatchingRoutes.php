@@ -39,9 +39,9 @@ class MakeBatchingRoutes extends Command
         $this->projectNamespace = App::getNamespace();
         $this->projectNamespace = rtrim($this->projectNamespace, '\\');
 
-        $reflections = $this->getModelsReflections();
+        $modelFiles = $this->getModelsReflections();
 
-        if (empty($reflections)) {
+        if (empty($modelFiles)) {
             $this->error('Nenhuma model encontrada');
             return;
         }
@@ -49,18 +49,18 @@ class MakeBatchingRoutes extends Command
         Artisan::call('schema:dump');
         $models = [];
 
-        foreach ($reflections as $modelReflection) {
-            $fileName = $modelReflection->getShortName();
-            $model = App::make($modelReflection->name);
+        foreach ($modelFiles as $modelFile) {
+            $className = $modelFile['className'];
+            $model = App::make($className);
             $tableName = $model->getTable();
 
             $hiddenColumns = $model->getHidden();
             $columns = $this->getTableColumnsFromSchema($tableName);
             $columns = array_diff_key($columns, array_flip($hiddenColumns));
-            $models[$modelReflection->name] = ['name' => $tableName, 'columns' => array_keys($columns)];
+            $models[$className] = ['name' => $tableName, 'columns' => array_keys($columns)];
 
             $fields = $this->convertColumnsToFactoryDefinitions($columns);
-            $this->insertFactoryFiles($fileName, $fields);
+            $this->insertFactoryFiles($modelFile['fileName'], $fields);
         }
 
         $this->insertAPIRouteFile($models);
