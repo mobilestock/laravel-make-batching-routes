@@ -180,7 +180,7 @@ it('should create :dataset factory', function (int $putTimesCalled, bool $factor
         ->once()
         ->andReturn($factoryAlreadyExists);
 
-    $this->command->projectNamespace = 'Tests\\Temp';
+    fillPrivateProperty($this->command, 'projectNamespace', 'Tests\\Temp');
     invokeProtectedMethod($this->command, 'insertFactoryFiles', [
         'Test',
         [
@@ -252,7 +252,7 @@ it('should insert tests :dataset middlewares correctly', function (
         ->andReturn("$BASE_PATH/tests/Feature/BatchingControllerTest.php");
     File::partialMock()->shouldReceive('put')->once();
 
-    $this->command->projectNamespace = 'Tests\\Temp';
+    fillPrivateProperty($this->command, 'projectNamespace', 'Tests\\Temp');
     invokeProtectedMethod($this->command, 'insertTestFile', [
         [$modelNamespace => ['name' => $tableName, 'columns' => ['id', 'name']]],
     ]);

@@ -29,7 +29,7 @@ class MakeBatchingRoutes extends Command
      */
     protected $description = 'Create Factories, api routes and tests to batching';
 
-    public string $projectNamespace;
+    private string $projectNamespace;
 
     /**
      * Execute the console command.

@@ -4,6 +4,14 @@ use Illuminate\Support\Str;
 
 uses(Tests\TestCase::class)->in(__DIR__);
 
+function fillPrivateProperty(object &$class, string $propertyName, mixed $value): void
+{
+    $reflection = new ReflectionClass($class);
+    $property = $reflection->getProperty($propertyName);
+    $property->setAccessible(true);
+    $property->setValue($class, $value);
+}
+
 function invokeProtectedMethod(object $class, string $methodName, array $parameters = []): mixed
 {
     $method = new ReflectionMethod($class, $methodName);
