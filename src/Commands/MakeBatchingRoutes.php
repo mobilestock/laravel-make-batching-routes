@@ -12,7 +12,6 @@ use MobileStock\MakeBatchingRoutes\HasBatchingEndpoint;
 use MobileStock\MakeBatchingRoutes\Utils\ClassNameSanitize;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use ReflectionClass;
 
 class MakeBatchingRoutes extends Command
 {
@@ -69,9 +68,6 @@ class MakeBatchingRoutes extends Command
         $this->info('Batching routes generated successfully');
     }
 
-    /**
-     * @return array<ReflectionClass>
-     */
     protected function getModelsReflections(): array
     {
         $modelsToGenerate = [];
@@ -90,7 +86,8 @@ class MakeBatchingRoutes extends Command
 
             $traits = trait_uses_recursive($class);
             if (array_key_exists(HasBatchingEndpoint::class, $traits)) {
-                $modelsToGenerate[] = new ReflectionClass($class);
+                $fileName = Str::before($file->getFilename(), '.php');
+                $modelsToGenerate[] = ['className' => $class, 'fileName' => $fileName];
             }
         }
 
