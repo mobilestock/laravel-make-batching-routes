@@ -155,10 +155,10 @@ dataset('datasetDataTypes', function () {
 });
 
 it('should not found :dataset values', function (string $type) {
-    invokeProtectedMethod($this->command, 'convertColumnsToFactoryDefinitions', [['foo' => "$type()"]]);
+    invokeProtectedMethod($this->command, 'handleEnumOrSetColumns', ["$type()", '']);
 })
     ->with('datasetDataTypes')
-    ->throws(DomainException::class);
+    ->throws(DomainException::class, 'Não foi possível encontrar os valores da coluna');
 
 dataset('datasetFactoriesGenerator', function () {
     return [
