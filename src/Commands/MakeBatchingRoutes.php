@@ -291,6 +291,7 @@ PHP;
 it('should retrieves all values from {$table['name']} with controller sorting', function () {
     \$values = $modelNamespace::withoutEvents(fn() => $modelNamespace::factory(MODEL_INSTANCES_COUNT)->create());
     $queryParams
+    \$queryParams['order_by'] = '$primaryColumn';
 
     \$query = http_build_query(\$queryParams);
     \$response = \$this{$middlewareRemotion}->get("api/batching/{$table['name']}?\$query");

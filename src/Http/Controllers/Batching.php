@@ -4,6 +4,7 @@ namespace MobileStock\MakeBatchingRoutes\Http\Controllers;
 
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Request;
+use Illuminate\Validation\Rule;
 use MobileStock\MakeBatchingRoutes\Utils\ClassNameSanitize;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -44,9 +45,11 @@ class Batching
             throw new RuntimeException("Model não encontrada pra tabela: $routeResource");
         }
 
+        $requestData = Request::except(['limit', 'page', 'order_by']);
         $paginationOptions = Request::validate([
             'limit' => ['nullable', 'integer', 'min:0', 'max:1000'],
             'page' => ['nullable', 'integer', 'min:1'],
+            'order_by' => ['nullable', Rule::in(array_keys($requestData))],
         ]);
 
         $limit = $paginationOptions['limit'] ?? 1000;
@@ -56,18 +59,17 @@ class Batching
         /** @var \Illuminate\Database\Eloquent\Model $model*/
         $query = $model::query()->limit($limit)->offset($offset);
 
-        $requestData = Request::except(['limit', 'page']);
         foreach ($requestData as $key => $value) {
             $query->whereIn($key, $value);
         }
 
         $databaseValues = $query->get()->toArray();
-        if (empty($requestData)) {
+        if (empty($paginationOptions['order_by'])) {
             return $databaseValues;
         }
 
-        $key = current(array_keys($requestData));
-        $sorter = current($requestData);
+        $key = $paginationOptions['order_by'];
+        $sorter = $requestData[$key];
         usort($databaseValues, function (array $a, array $b) use ($key, $sorter): int {
             $indexA = array_search($a[$key], $sorter);
             $indexB = array_search($b[$key], $sorter);
