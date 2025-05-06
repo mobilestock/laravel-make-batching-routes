@@ -209,7 +209,7 @@ it('should insert API route :dataset middlewares correctly', function (
     string $modelNamespace,
     string $tableName,
     array $middlewares
-) use ($BASE_PATH) {
+) {
     $mockClass = Mockery::mock(new class {})
         ->shouldReceive('getBatchingMiddlewares')
         ->once()
@@ -235,7 +235,7 @@ it('should insert tests :dataset middlewares correctly', function (
     string $modelNamespace,
     string $tableName,
     array $middlewares
-) use ($BASE_PATH) {
+) {
     $mockClass = Mockery::mock(new class {})
         ->shouldReceive('getBatchingMiddlewares')
         ->once()
