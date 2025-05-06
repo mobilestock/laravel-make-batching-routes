@@ -186,7 +186,7 @@ use MobileStock\MakeBatchingRoutes\Faker\TypesProvider;
  */
 class {$fileName}BaseFactory extends Factory
 {
-    protected function definition(): array
+    public function definition(): array
     {
         \$this->faker->addProvider(new TypesProvider(\$this->faker));
 
