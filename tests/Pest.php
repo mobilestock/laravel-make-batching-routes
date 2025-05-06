@@ -21,10 +21,10 @@ function invokeProtectedMethod(object $class, string $methodName, array $paramet
 
 pest()->afterEach(function () {
     $tempDirectory = __DIR__ . '/Temp';
-    $tempFile = new RecursiveDirectoryIterator($tempDirectory);
+    $tempFile = new RecursiveDirectoryIterator($tempDirectory, RecursiveDirectoryIterator::SKIP_DOTS);
 
     foreach ($tempFile as $file) {
-        if ($file->isFile() || Str::endsWith($file->getFilename(), '.')) {
+        if ($file->isFile()) {
             continue;
         }
 
