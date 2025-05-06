@@ -14,11 +14,11 @@ beforeEach(function () use ($MODEL_PATH) {
 
 dataset('datasetControllerFindFails', function () use ($MODEL_PATH) {
     return [
-        'file' => ["$MODEL_PATH/NotFindFile.txt", ''],
-        'class' => ["$MODEL_PATH/NotFindClass.php", '<?php namespace Fake\Models; class NotFindClass {}'],
+        'file' => ["$MODEL_PATH/FileNotFound.txt", ''],
+        'class' => ["$MODEL_PATH/ClassNotFound.php", '<?php namespace Fake\Models; class ClassNotFound {}'],
         'table' => [
-            "$MODEL_PATH/NotFindTable.php",
-            '<?php namespace Tests\Temp\Models; class NotFindTable extends \Illuminate\Database\Eloquent\Model {}',
+            "$MODEL_PATH/TableNotFound.php",
+            '<?php namespace Tests\Temp\Models; class TableNotFound extends \Illuminate\Database\Eloquent\Model {}',
         ],
     ];
 });
@@ -52,7 +52,7 @@ dataset('datasetControllerFindSucceeds', function () {
 });
 
 it('should work correctly :dataset sorting', function (array $parameters, array $expected) use ($MODEL_PATH) {
-    $request = Request::create('api/batching/find_tables', parameters: $parameters);
+    $request = Request::create('api/batching/table_founds', parameters: $parameters);
     Request::swap($request);
     App::partialMock()
         ->shouldReceive('getNamespace')
@@ -63,8 +63,8 @@ it('should work correctly :dataset sorting', function (array $parameters, array 
         ->twice()
         ->andReturn('/laravel-make-batching-routes/tests/Temp/Models');
     File::put(
-        "$MODEL_PATH/FindTable.php",
-        '<?php namespace Tests\Temp\Models; class FindTable extends \Illuminate\Database\Eloquent\Model {}'
+        "$MODEL_PATH/TableFound.php",
+        '<?php namespace Tests\Temp\Models; class TableFound extends \Illuminate\Database\Eloquent\Model {}'
     );
 
     $pdoMock = Mockery::mock(PDO::class);
