@@ -127,16 +127,11 @@ class MakeBatchingRoutes extends Command
         $primaryColumn = current(array_keys($columns));
         foreach ($columns as $columnName => $columnType) {
             $uniqueKey = $columnName === $primaryColumn ? '->unique()' : '';
-            $handleEnumOrSet = function (string $columnType, string $type) use ($uniqueKey): string {
-                preg_match("/$type\((.+)\)/i", $columnType, $matches);
-                if (empty($matches)) {
-                    throw new DomainException("Não foi possível encontrar os valores do $type");
-                }
-
-                return $type === 'enum'
-                    ? "\$this->faker{$uniqueKey}->randomElement([$matches[1]])"
-                    : "\$this->faker{$uniqueKey}->randomElements([$matches[1]])";
-            };
+            if (Str::contains($columnType, ['enum', 'set'])) {
+                $fakerString = $this->handleEnumOrSetColumns($columnType, $uniqueKey);
+                $fields[] = "'$columnName' => $fakerString,";
+                continue;
+            }
 
             preg_match('/\((.+)\)/', $columnType, $matches);
             $fields[] = match (true) {
@@ -145,10 +140,6 @@ class MakeBatchingRoutes extends Command
                     => "'$columnName' => \$this->faker{$uniqueKey}->cellphoneNumber(false),",
                 Str::contains($columnName, 'document') => "'$columnName' => \$this->faker{$uniqueKey}->document(),",
                 Str::contains($columnType, 'tinyint(1)') => "'$columnName' => \$this->faker{$uniqueKey}->boolean(),",
-                Str::contains($columnType, 'int')
-                    => "'$columnName' => \$this->faker{$uniqueKey}->numberBetween(1, 64),",
-                Str::contains($columnType, 'enum') => "'$columnName' => " . $handleEnumOrSet($columnType, 'enum') . ',',
-                Str::contains($columnType, 'set') => "'$columnName' => " . $handleEnumOrSet($columnType, 'set') . ',',
                 Str::contains($columnType, ['decimal', 'double', 'float'])
                     => "'$columnName' => \$this->faker{$uniqueKey}->randomFloat(2, 1, 64),",
                 Str::contains($columnType, 'char(36)') => "'$columnName' => \$this->faker{$uniqueKey}->uuid(),",
@@ -160,11 +151,29 @@ class MakeBatchingRoutes extends Command
                 Str::contains($columnType, ['timestamp', 'datetime']) => "'$columnName' => now(),",
                 Str::contains($columnType, 'polygon') => "'$columnName' => \$this->faker{$uniqueKey}->polygon(),",
                 Str::contains($columnType, 'point') => "'$columnName' => \$this->faker{$uniqueKey}->point(),",
+                Str::contains($columnType, 'int')
+                    => "'$columnName' => \$this->faker{$uniqueKey}->numberBetween(1, 64),",
                 default => "'$columnName' => null,",
             };
         }
 
         return $fields;
+    }
+
+    protected function handleEnumOrSetColumns(string $columnType, string $uniqueKey): string
+    {
+        preg_match('/([a-z]+)\((.+)\)/', $columnType, $matches);
+        if (empty($matches)) {
+            throw new DomainException('Não foi possível encontrar os valores da coluna');
+        }
+
+        $columnValues = $matches[2];
+        $fakerString =
+            $matches[1] === 'enum'
+                ? "\$this->faker{$uniqueKey}->randomElement([$columnValues])"
+                : "\$this->faker{$uniqueKey}->randomElements([$columnValues])";
+
+        return $fakerString;
     }
 
     protected function insertFactoryFiles(string $fileName, array $fields): void

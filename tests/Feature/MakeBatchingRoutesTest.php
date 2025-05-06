@@ -145,7 +145,7 @@ it('should convert columns correctly', function () {
         "'created_at' => now(),",
         "'updated_at' => now(),",
         "'area' => \$this->faker->polygon(),",
-        "'location' => \$this->faker->numberBetween(1, 64),",
+        "'location' => \$this->faker->point(),",
         "'foo' => null,",
     ]);
 });
