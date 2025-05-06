@@ -270,7 +270,7 @@ PHP;
                 $middlewareRemotion = '->withoutMiddleware([' . implode(', ', $middlewares) . '])';
             }
 
-            $indexColumn = current($table['columns']);
+            $primaryColumn = current($table['columns']);
 
             $queryParams = array_map(
                 fn(string $column): string => "\$queryParams['$column'] = \$values->pluck('$column')->toArray();",
@@ -291,12 +291,12 @@ it('should retrieves all values from {$table['name']} with controller sorting', 
 
 it('should retrieves all values from {$table['name']} without controller sorting', function () {
     \$values = \\$modelNamespace::withoutEvents(fn() => \\$modelNamespace::factory(MODEL_INSTANCES_COUNT)->create());
-    \$request = Request::create('api/batching/users');
+    \$request = Request::create('api/batching/{$table['name']}');
     Request::swap(\$request);
 
     \$controller = new Batching();
     \$response = \$controller->find();
-    \$expected = \$values->sortBy('$indexColumn')->values()->toArray();
+    \$expected = \$values->sortBy('$primaryColumn')->values()->toArray();
     expect(\$response)->toBe(\$expected);
 });
 PHP;
