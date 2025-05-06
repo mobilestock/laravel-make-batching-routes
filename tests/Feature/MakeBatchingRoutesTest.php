@@ -29,7 +29,7 @@ dataset('datasetNamespaces', function () {
 });
 
 it('should :dataset models', function (
-    string $nameSpace,
+    string $namespace,
     int $modelCount,
     string $withTrait = 'use HasBatchingEndpoint;'
 ) use ($MODEL_PATH) {
@@ -53,7 +53,7 @@ PHP;
         ->with('Models')
         ->andReturn('/laravel-make-batching-routes/tests/Temp/Models')
         ->shouldReceive('getNamespace')
-        ->andReturn($nameSpace);
+        ->andReturn($namespace);
 
     $models = invokeProtectedMethod($this->command, 'getModelsReflections');
     expect($models)->toBeArray()->toHaveCount($modelCount);
