@@ -46,8 +46,7 @@ class TypesProvider extends Base
     public function document(): string
     {
         $format = static::randomElement(['###########', '########0001##']);
-        $parsed = $this->generator->parse($format);
-        $document = static::numerify($parsed);
+        $document = static::numerify($format);
 
         return $document;
     }
