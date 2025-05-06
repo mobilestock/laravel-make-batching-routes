@@ -199,7 +199,7 @@ dataset('datasetWithAndWithoutMiddlewares', function () {
         'with' => [
             '\\Tests\\Temp\\Models\\TestWithMiddlewares',
             'test_with_middlewares',
-            [Authenticate::class . ':api', \Illuminate\Foundation\Http\Middleware\TrimStrings::class],
+            [Authenticate::class . ':api', Illuminate\Foundation\Http\Middleware\TrimStrings::class],
         ],
         'without' => ['\\Tests\\Temp\\Models\\TestWithoutMiddlewares', 'test_without_middlewares', []],
     ];
