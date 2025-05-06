@@ -223,8 +223,7 @@ it('should insert API route :dataset middlewares correctly', function (
         ->andReturn($mockClass)
         ->shouldReceive('basePath')
         ->with('routes/batching.php')
-        ->once()
-        ->andReturn("$BASE_PATH/routes/batching.php");
+        ->once();
     File::partialMock()->shouldReceive('put')->once();
 
     invokeProtectedMethod($this->command, 'insertAPIRouteFile', [
@@ -250,8 +249,7 @@ it('should insert tests :dataset middlewares correctly', function (
         ->andReturn($mockClass)
         ->shouldReceive('basePath')
         ->with('tests/Feature/BatchingControllerTest.php')
-        ->once()
-        ->andReturn("$BASE_PATH/tests/Feature/BatchingControllerTest.php");
+        ->once();
     File::partialMock()->shouldReceive('put')->once();
 
     fillPrivateProperty($this->command, 'projectNamespace', 'Tests\\Temp');
