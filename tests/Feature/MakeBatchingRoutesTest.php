@@ -272,8 +272,8 @@ it('should handle the command correctly', function () {
         "'created_at' => now(),",
         "'updated_at' => now(),",
     ];
-    $tables = [
-        'Tests\\Temp\\Models\\Test' => [
+    $models = [
+        '\\Tests\\Temp\\Models\\Test' => [
             'name' => $tableName,
             'columns' => ['id', 'name', 'created_at', 'updated_at'],
         ],
@@ -308,7 +308,7 @@ it('should handle the command correctly', function () {
         ->shouldAllowMockingProtectedMethods()
         ->shouldReceive('getModelsReflections')
         ->once()
-        ->andReturn([new ReflectionClass('\\Tests\\Temp\\Models\\Test')])
+        ->andReturn([['className' => '\\Tests\\Temp\\Models\\Test', 'fileName' => 'Test']])
         ->shouldReceive('getTableColumnsFromSchema')
         ->with($tableName)
         ->once()
@@ -321,10 +321,10 @@ it('should handle the command correctly', function () {
         ->with('Test', $fields)
         ->once()
         ->shouldReceive('insertAPIRouteFile')
-        ->with($tables)
+        ->with($models)
         ->once()
         ->shouldReceive('insertTestFile')
-        ->with($tables)
+        ->with($models)
         ->once()
         ->shouldReceive('info')
         ->with('Batching routes generated successfully')
