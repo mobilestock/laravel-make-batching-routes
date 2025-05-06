@@ -11,7 +11,10 @@
   ],
   "require-dev": {
     "pestphp/pest": "^3.7",
-    "orchestra/testbench": "^9.5"
+    "orchestra/testbench": "^9.5",
+    "illuminate/testing": "^11.43",
+    "illuminate/routing": "^11.43",
+    "illuminate/http": "^11.43"
   },
   "autoload": {
     "psr-4": {
@@ -30,7 +33,10 @@
   },
   "require": {
     "illuminate/support": "^11.43",
-    "illuminate/console": "^11.43"
+    "illuminate/console": "^11.43",
+    "fakerphp/faker": "^1.24",
+    "illuminate/auth": "^11.43",
+    "illuminate/database": "^11.43"
   },
   "extra": {
     "laravel": {
