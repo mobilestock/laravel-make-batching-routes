@@ -1,7 +1,5 @@
 <?php
 
-use Illuminate\Support\Str;
-
 uses(Tests\TestCase::class)->in(__DIR__);
 
 function fillPrivateProperty(object &$class, string $propertyName, mixed $value): void
