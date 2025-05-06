@@ -221,28 +221,29 @@ PHP;
 
     protected function insertAPIRouteFile(array $models): void
     {
-        $tablesBlock = [];
+        $routes = [];
         foreach ($models as $modelClassName => $table) {
             $model = App::make($modelClassName);
             $middlewares = $model::getBatchingMiddlewares();
+            $batchingRouteTemplate = "Route::get('/{$table['name']}', [Batching::class, 'find'])";
             if (empty($middlewares)) {
-                $tablesBlock[] = "Route::get('/{$table['name']}', [Batching::class, 'find']);";
+                $routes[] = "$batchingRouteTemplate;";
                 continue;
             }
 
             $middlewares = array_map(fn(string $middleware) => "'$middleware'", $middlewares);
             $middlewaresString = implode(', ', $middlewares);
-            $tablesBlock[] = "Route::get('/{$table['name']}', [Batching::class, 'find'])->middleware([$middlewaresString]);";
+            $routes[] = "{$batchingRouteTemplate}->middleware([$middlewaresString]);";
         }
 
-        $tablesBlock = implode(PHP_EOL, $tablesBlock);
+        $routes = implode(PHP_EOL, $routes);
         $apiFileContent = <<<PHP
 <?php
 
 use MobileStock\MakeBatchingRoutes\Http\Controllers\Batching;
 use Illuminate\Support\Facades\Route;
 
-$tablesBlock
+$routes
 
 PHP;
 
