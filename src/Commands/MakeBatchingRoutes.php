@@ -289,7 +289,7 @@ PHP;
 
             $tests[] = <<<PHP
 it('should retrieves all values from {$table['name']} with controller sorting', function () {
-    \$values = \\$modelNamespace::withoutEvents(fn() => \\$modelNamespace::factory(MODEL_INSTANCES_COUNT)->create());
+    \$values = $modelNamespace::withoutEvents(fn() => $modelNamespace::factory(MODEL_INSTANCES_COUNT)->create());
     $queryParams
 
     \$query = http_build_query(\$queryParams);
@@ -299,7 +299,7 @@ it('should retrieves all values from {$table['name']} with controller sorting', 
 });
 
 it('should retrieves all values from {$table['name']} without controller sorting', function () {
-    \$values = \\$modelNamespace::withoutEvents(fn() => \\$modelNamespace::factory(MODEL_INSTANCES_COUNT)->create());
+    \$values = $modelNamespace::withoutEvents(fn() => $modelNamespace::factory(MODEL_INSTANCES_COUNT)->create());
     \$request = Request::create('api/batching/{$table['name']}');
     Request::swap(\$request);
 
