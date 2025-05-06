@@ -3,6 +3,7 @@
 namespace MobileStock\MakeBatchingRoutes\Faker;
 
 use Faker\Provider\Base;
+use InvalidArgumentException;
 
 class TypesProvider extends Base
 {
@@ -31,7 +32,7 @@ class TypesProvider extends Base
     public function randomLetters(int $maxLength): string
     {
         if ($maxLength < 1) {
-            throw new \InvalidArgumentException('randomLetters() can only generate text of at least 1 characters');
+            throw new InvalidArgumentException('randomLetters() can only generate text of at least 1 characters');
         }
 
         $letters = '';
