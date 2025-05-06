@@ -118,7 +118,9 @@ class MakeBatchingRoutes extends Command
         return $columns;
     }
 
-    // @issue: https://github.com/mobilestock/backend/issues/891
+    /**
+     * @issue: https://github.com/mobilestock/backend/issues/891
+     */
     protected function convertColumnsToFactoryDefinitions(array $columns): array
     {
         $fields = [];
