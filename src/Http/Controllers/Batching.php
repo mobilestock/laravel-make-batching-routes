@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Request;
 use MobileStock\MakeBatchingRoutes\Utils\ClassNameSanitize;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use RuntimeException;
 
 class Batching
 {
@@ -41,7 +41,7 @@ class Batching
         }
 
         if (empty($model)) {
-            throw new NotFoundHttpException("Model não encontrada pra tabela: $routeResource");
+            throw new RuntimeException("Model não encontrada pra tabela: $routeResource");
         }
 
         $paginationOptions = Request::validate([

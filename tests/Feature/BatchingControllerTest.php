@@ -4,7 +4,7 @@ use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Eloquent\Model;
 use MobileStock\MakeBatchingRoutes\Http\Controllers\Batching;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use RuntimeException;
 
 $MODEL_PATH = __DIR__ . '/../Temp/Models';
 
@@ -36,7 +36,7 @@ it('should throws exception if no :dataset is found', function (string $filePath
     $controller->find();
 })
     ->with('datasetControllerFindFails')
-    ->throws(NotFoundHttpException::class, 'Model não encontrada pra tabela: /');
+    ->throws(RuntimeException::class, 'Model não encontrada pra tabela: /');
 
 dataset('datasetControllerFindSucceeds', function () {
     return [
