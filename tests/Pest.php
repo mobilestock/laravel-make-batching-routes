@@ -2,7 +2,7 @@
 
 uses(Tests\TestCase::class)->in(__DIR__);
 
-function fillPrivateProperty(object &$class, string $propertyName, mixed $value): void
+function fillPrivateProperty(object $class, string $propertyName, mixed $value): void
 {
     $reflection = new ReflectionClass($class);
     $property = $reflection->getProperty($propertyName);

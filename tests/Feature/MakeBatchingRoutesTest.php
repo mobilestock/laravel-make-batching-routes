@@ -55,7 +55,7 @@ PHP;
         ->shouldReceive('getNamespace')
         ->andReturn($namespace);
 
-    $models = invokeProtectedMethod($this->command, 'getModelsReflections');
+    $models = invokeProtectedMethod($this->command, 'getModelList');
     expect($models)->toBeArray()->toHaveCount($modelCount);
 })->with('datasetNamespaces');
 
@@ -199,7 +199,7 @@ dataset('datasetWithAndWithoutMiddlewares', function () {
         'with' => [
             '\\Tests\\Temp\\Models\\TestWithMiddlewares',
             'test_with_middlewares',
-            [Authenticate::class . ':api', Illuminate\Foundation\Http\Middleware\TrimStrings::class],
+            [Authenticate::class . ':api'],
         ],
         'without' => ['\\Tests\\Temp\\Models\\TestWithoutMiddlewares', 'test_without_middlewares', []],
     ];
@@ -306,7 +306,7 @@ it('should handle the command correctly', function () {
     Mockery::mock(MakeBatchingRoutes::class)
         ->makePartial()
         ->shouldAllowMockingProtectedMethods()
-        ->shouldReceive('getModelsReflections')
+        ->shouldReceive('getModelList')
         ->once()
         ->andReturn([['className' => '\\Tests\\Temp\\Models\\Test', 'fileName' => 'Test']])
         ->shouldReceive('getTableColumnsFromSchema')
@@ -338,7 +338,7 @@ it('should show error if not found models reflections', function () {
     Mockery::mock(MakeBatchingRoutes::class)
         ->makePartial()
         ->shouldAllowMockingProtectedMethods()
-        ->shouldReceive('getModelsReflections')
+        ->shouldReceive('getModelList')
         ->once()
         ->andReturn([])
         ->shouldReceive('error')

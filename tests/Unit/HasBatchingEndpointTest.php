@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Auth\Middleware\Authenticate;
-use Illuminate\Foundation\Http\Middleware\TrimStrings;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use MobileStock\MakeBatchingRoutes\HasBatchingEndpoint;
 
@@ -25,13 +24,9 @@ dataset('datasetMiddlewares', function () {
             new class {
                 use HasBatchingEndpoint;
 
-                protected static $middlewares = [
-                    SubstituteBindings::class,
-                    Authenticate::class . ':web',
-                    TrimStrings::class,
-                ];
+                protected static $middlewares = [SubstituteBindings::class, Authenticate::class . ':web'];
             },
-            [SubstituteBindings::class, Authenticate::class . ':web', TrimStrings::class],
+            [SubstituteBindings::class, Authenticate::class . ':web'],
         ],
     ];
 });

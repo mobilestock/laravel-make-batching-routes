@@ -39,7 +39,7 @@ class MakeBatchingRoutes extends Command
         $this->projectNamespace = App::getNamespace();
         $this->projectNamespace = rtrim($this->projectNamespace, '\\');
 
-        $modelFiles = $this->getModelsReflections();
+        $modelFiles = $this->getModelList();
 
         if (empty($modelFiles)) {
             $this->error('Nenhuma model encontrada');
@@ -68,7 +68,7 @@ class MakeBatchingRoutes extends Command
         $this->info('Batching routes generated successfully');
     }
 
-    protected function getModelsReflections(): array
+    protected function getModelList(): array
     {
         $modelsToGenerate = [];
         $modelPath = App::path('Models');
