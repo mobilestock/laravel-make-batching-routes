@@ -316,16 +316,25 @@ PHP;
         $testContent = <<<PHP
 <?php
 
-use MobileStock\MakeBatchingRoutes\Http\Controllers\Batching;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Request;
+use Illuminate\Support\Facades\Schema;
+use MobileStock\MakeBatchingRoutes\Http\Controllers\Batching;
 
 uses(RefreshDatabase::class);
 
 const MODEL_INSTANCES_COUNT = 3;
 
+beforeEach(function () {
+    Schema::disableForeignKeyConstraints();
+});
+
 $testContent
+
+afterEach(function () {
+    Schema::enableForeignKeyConstraints();
+});
 
 PHP;
 
