@@ -56,7 +56,7 @@ class Batching
         $page = $paginationOptions['page'] ?? 1;
         $offset = $limit * ($page - 1);
 
-        /** @var \Illuminate\Database\Eloquent\Model $model*/
+        /**  @var \Illuminate\Database\Eloquent\Model $model*/
         $query = $model::query()->limit($limit)->offset($offset);
 
         foreach ($requestData as $key => $value) {
