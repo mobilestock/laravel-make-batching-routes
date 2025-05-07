@@ -250,7 +250,7 @@ it('should insert tests :dataset middlewares correctly', function (
         ->shouldReceive('basePath')
         ->with('tests/Feature/BatchingControllerTest.php')
         ->once();
-    File::partialMock()->shouldReceive('put')->once();
+    File::partialMock()->shouldReceive('ensureDirectoryExists')->once()->shouldReceive('put')->once();
 
     fillPrivateProperty($this->command, 'projectNamespace', 'Tests\\Temp');
     invokeProtectedMethod($this->command, 'insertTestFile', [

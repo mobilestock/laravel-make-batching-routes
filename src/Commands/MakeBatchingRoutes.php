@@ -329,7 +329,9 @@ $testContent
 
 PHP;
 
-        $testPath = App::basePath('tests/Feature/BatchingControllerTest.php');
+        $testDirectory = 'tests/Feature';
+        File::ensureDirectoryExists($testDirectory);
+        $testPath = App::basePath("$testDirectory/BatchingControllerTest.php");
         File::put($testPath, $testContent);
     }
 }
