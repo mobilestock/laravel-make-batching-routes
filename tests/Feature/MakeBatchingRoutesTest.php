@@ -142,8 +142,8 @@ it('should convert columns correctly', function () {
         "'state' => \$this->faker->randomLetters(2),",
         "'name' => \$this->faker->text(255),",
         "'lorem' => \$this->faker->text(),",
-        "'created_at' => now(),",
-        "'updated_at' => now(),",
+        "'created_at' => now()->toDateTimeString(),",
+        "'updated_at' => now()->toDateTimeString(),",
         "'area' => \$this->faker->polygon(),",
         "'location' => \$this->faker->point(),",
         "'foo' => null,",
@@ -188,8 +188,8 @@ it('should create :dataset factory', function (int $putTimesCalled, bool $factor
         [
             "'id' => \$this->faker->unique()->numberBetween(1, 64),",
             "'name' => \$this->faker->text(255),",
-            "'created_at' => now(),",
-            "'updated_at' => now(),",
+            "'created_at' => now()->toDateTimeString(),",
+            "'updated_at' => now()->toDateTimeString(),",
         ],
     ]);
 })->with('datasetFactoriesGenerator');
@@ -269,8 +269,8 @@ it('should handle the command correctly', function () {
     $fields = [
         "'id' => \$this->faker->unique()->numberBetween(1, 64),",
         "'name' => \$this->faker->text(255),",
-        "'created_at' => now(),",
-        "'updated_at' => now(),",
+        "'created_at' => now()->toDateTimeString(),",
+        "'updated_at' => now()->toDateTimeString(),",
     ];
     $models = [
         '\\Tests\\Temp\\Models\\Test' => [

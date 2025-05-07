@@ -148,7 +148,7 @@ class MakeBatchingRoutes extends Command
                 Str::contains($columnType, 'char')
                     => "'$columnName' => \$this->faker{$uniqueKey}->randomLetters($matches[1]),",
                 Str::contains($columnType, 'text') => "'$columnName' => \$this->faker{$uniqueKey}->text(),",
-                Str::contains($columnType, ['timestamp', 'datetime']) => "'$columnName' => now(),",
+                Str::contains($columnType, ['timestamp', 'datetime']) => "'$columnName' => now()->toDateTimeString(),",
                 Str::contains($columnType, 'polygon') => "'$columnName' => \$this->faker{$uniqueKey}->polygon(),",
                 Str::contains($columnType, 'point') => "'$columnName' => \$this->faker{$uniqueKey}->point(),",
                 Str::contains($columnType, 'int')
