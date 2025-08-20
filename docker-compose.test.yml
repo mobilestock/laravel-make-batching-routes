@@ -1,0 +1,8 @@
+services:
+  laravel-make-batching-routes:
+    extends:
+      file: docker-compose.base.yml
+      service: pest-base
+    volumes:
+      - './packages/laravel-make-batching-routes:/laravel-make-batching-routes'
+    working_dir: /laravel-make-batching-routes
