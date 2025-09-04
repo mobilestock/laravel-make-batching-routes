@@ -254,7 +254,7 @@ it('should insert tests :dataset middlewares correctly', function (
 
     fillPrivateProperty($this->command, 'projectNamespace', 'Tests\\Temp');
     invokeProtectedMethod($this->command, 'insertTestFile', [
-        [$modelNamespace => ['name' => $tableName, 'columns' => ['id', 'name']]],
+        [$modelNamespace => ['name' => $tableName, 'columns' => ['id', 'name', 'status'], 'enums' => ['status']]],
     ]);
 })->with('datasetWithAndWithoutMiddlewares');
 
@@ -276,6 +276,7 @@ it('should handle the command correctly', function () {
         '\\Tests\\Temp\\Models\\Test' => [
             'name' => $tableName,
             'columns' => ['id', 'name', 'created_at', 'updated_at'],
+            'enums' => [],
         ],
     ];
 
@@ -283,6 +284,9 @@ it('should handle the command correctly', function () {
         ->shouldReceive('getTable')
         ->once()
         ->andReturn($tableName)
+        ->shouldReceive('getCasts')
+        ->once()
+        ->andReturn([])
         ->shouldReceive('getHidden')
         ->once()
         ->andReturn([])
