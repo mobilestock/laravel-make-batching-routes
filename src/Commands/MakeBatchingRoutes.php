@@ -54,10 +54,17 @@ class MakeBatchingRoutes extends Command
             $model = App::make($className);
             $tableName = $model->getTable();
 
+            $casts = $model->getCasts();
+            $enums = array_filter($casts, 'enum_exists');
+
             $hiddenColumns = $model->getHidden();
             $columns = $this->getTableColumnsFromSchema($tableName);
             $columns = array_diff_key($columns, array_flip($hiddenColumns));
-            $models[$className] = ['name' => $tableName, 'columns' => array_keys($columns)];
+            $models[$className] = [
+                'name' => $tableName,
+                'columns' => array_keys($columns),
+                'enums' => array_keys($enums),
+            ];
 
             $fields = $this->convertColumnsToFactoryDefinitions($columns);
             $this->insertFactoryFiles($modelFile['fileName'], $fields);
@@ -281,10 +288,12 @@ PHP;
 
             $primaryColumn = current($table['columns']);
 
-            $queryParams = array_map(
-                fn(string $column): string => "\$queryParams['$column'] = \$values->pluck('$column')->toArray();",
-                $table['columns']
-            );
+            $queryParams = [];
+            foreach ($table['columns'] as $column) {
+                $convertEnumToString = in_array($column, $table['enums']) ? "->pluck('value')" : '';
+
+                $queryParams[] = "\$queryParams['$column'] = \$values->pluck('$column'){$convertEnumToString}->toArray();";
+            }
             $queryParams = implode(PHP_EOL . '    ', $queryParams);
 
             $tests[] = <<<PHP
