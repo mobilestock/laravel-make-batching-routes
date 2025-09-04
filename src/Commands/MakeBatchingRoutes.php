@@ -290,7 +290,7 @@ PHP;
 
             $queryParams = [];
             foreach ($table['columns'] as $column) {
-                $convertEnumToString = in_array($column, $table['enums']) ? "->pluck('value')" : '';
+                $convertEnumToString = in_array($column, $table['enums']) ? '->pluck(\'value\')' : '';
 
                 $queryParams[] = "\$queryParams['$column'] = \$values->pluck('$column'){$convertEnumToString}->toArray();";
             }
