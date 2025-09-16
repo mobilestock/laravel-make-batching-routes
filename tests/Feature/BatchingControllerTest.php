@@ -14,16 +14,32 @@ beforeEach(function () use ($MODEL_PATH) {
 
 dataset('datasetControllerFindFails', function () use ($MODEL_PATH) {
     return [
-        'file' => ["$MODEL_PATH/FileNotFound.txt", ''],
-        'class' => ["$MODEL_PATH/ClassNotFound.php", '<?php namespace Fake\Models; class ClassNotFound {}'],
-        'table' => [
+        'file to group' => ["$MODEL_PATH/FileGroupedNotFound.txt", '', 'findGrouped'],
+        'class to group' => [
+            "$MODEL_PATH/ClassGroupedNotFound.php",
+            '<?php namespace Fake\Models; class ClassGroupedNotFound {}',
+            'findGrouped',
+        ],
+        'table to group' => [
+            "$MODEL_PATH/TableGroupedNotFound.php",
+            '<?php namespace Tests\Temp\Models; class TableGroupedNotFound extends \Illuminate\Database\Eloquent\Model {}',
+            'findGrouped',
+        ],
+        'file to default' => ["$MODEL_PATH/FileNotFound.txt", '', 'find'],
+        'class to default' => [
+            "$MODEL_PATH/ClassNotFound.php",
+            '<?php namespace Fake\Models; class ClassNotFound {}',
+            'find',
+        ],
+        'table to default' => [
             "$MODEL_PATH/TableNotFound.php",
             '<?php namespace Tests\Temp\Models; class TableNotFound extends \Illuminate\Database\Eloquent\Model {}',
+            'find',
         ],
     ];
 });
 
-it('should throws exception if no :dataset is found', function (string $filePath, string $fileContent) {
+it('should throws exception if no :dataset is found', function (string $filePath, string $fileContent, string $method) {
     App::partialMock()
         ->shouldReceive('getNamespace')
         ->andReturn('Tests\\Temp\\')
@@ -33,7 +49,7 @@ it('should throws exception if no :dataset is found', function (string $filePath
     File::put($filePath, $fileContent);
 
     $controller = new Batching();
-    $controller->find();
+    $controller->{$method}();
 })
     ->with('datasetControllerFindFails')
     ->throws(RuntimeException::class, 'Model não encontrada pra tabela: /');
