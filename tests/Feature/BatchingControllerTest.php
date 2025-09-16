@@ -70,6 +70,9 @@ it('should work correctly :dataset sorting', function (array $parameters, array 
     $request = Request::create('api/batching/tables', parameters: $parameters);
     Request::swap($request);
     App::partialMock()
+        ->shouldReceive('environment')
+        ->with('testing')
+        ->andReturnTrue()
         ->shouldReceive('getNamespace')
         ->twice()
         ->andReturn('Tests\\Temp\\')
@@ -102,6 +105,9 @@ it('should return grouped values', function () use ($MODEL_PATH) {
     $request = Request::create('api/batching/grouped/tables', parameters: ['id' => [3, 2, 1]]);
     Request::swap($request);
     App::partialMock()
+        ->shouldReceive('environment')
+        ->with('testing')
+        ->andReturnTrue()
         ->shouldReceive('getNamespace')
         ->twice()
         ->andReturn('Tests\\Temp\\')
