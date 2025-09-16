@@ -98,3 +98,46 @@ it('should work correctly :dataset sorting', function (array $parameters, array 
     $response = $controller->find();
     expect($response)->toBe($expected);
 })->with('datasetControllerFindSucceeds');
+
+it('should return grouped values', function () use ($MODEL_PATH) {
+    $request = Request::create('api/batching/grouped/tables', parameters: ['id' => [3, 2, 1]]);
+    Request::swap($request);
+    App::partialMock()
+        ->shouldReceive('getNamespace')
+        ->twice()
+        ->andReturn('Tests\\Temp\\')
+        ->shouldReceive('path')
+        ->with('Models')
+        ->twice()
+        ->andReturn('/laravel-make-batching-routes/tests/Temp/Models');
+    File::put(
+        "$MODEL_PATH/Table.php",
+        '<?php namespace Tests\Temp\Models; class Table extends \Illuminate\Database\Eloquent\Model {}'
+    );
+
+    $pdoMock = Mockery::mock(PDO::class);
+
+    $connectionMock = Mockery::mock(Connection::class)->makePartial();
+    $connectionMock->__construct($pdoMock);
+    $connectionMock
+        ->shouldReceive('select')
+        ->andReturn([
+            ['id' => 3, 'name' => 'Foo'],
+            ['id' => 1, 'name' => 'Foo'],
+            ['id' => 2, 'name' => 'Foo'],
+            ['id' => 3, 'name' => 'Bar'],
+        ]);
+
+    $resolverMock = Mockery::mock(DatabaseManager::class);
+    $resolverMock->shouldReceive('connection')->andReturn($connectionMock);
+
+    Model::setConnectionResolver($resolverMock);
+
+    $controller = new Batching();
+    $response = $controller->findGrouped();
+    expect($response)->toBe([
+        [['id' => 3, 'name' => 'Foo'], ['id' => 3, 'name' => 'Bar']],
+        [['id' => 2, 'name' => 'Foo']],
+        [['id' => 1, 'name' => 'Foo']],
+    ]);
+});
