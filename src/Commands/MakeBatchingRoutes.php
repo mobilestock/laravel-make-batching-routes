@@ -241,15 +241,15 @@ PHP;
         foreach ($models as $modelClassName => $table) {
             $model = App::make($modelClassName);
             $middlewares = $model::getBatchingMiddlewares();
-            $batchingRouteTemplate = "Route::get('/{$table['name']}', [Batching::class, 'find'])";
-            if (empty($middlewares)) {
-                $routes[] = "$batchingRouteTemplate;";
-                continue;
+            $suffix = '';
+            if (!empty($middlewares)) {
+                $middlewares = array_map(fn(string $middleware): string => "'$middleware'", $middlewares);
+                $middlewaresString = implode(', ', $middlewares);
+                $suffix = "->middleware([$middlewaresString])";
             }
 
-            $middlewares = array_map(fn(string $middleware) => "'$middleware'", $middlewares);
-            $middlewaresString = implode(', ', $middlewares);
-            $routes[] = "{$batchingRouteTemplate}->middleware([$middlewaresString]);";
+            $routes[] = "Route::get('/{$table['name']}', [Batching::class, 'find']){$suffix};";
+            $routes[] = "Route::get('/grouped/{$table['name']}', [Batching::class, 'findGrouped']){$suffix};";
         }
 
         $routes = implode(PHP_EOL, $routes);
