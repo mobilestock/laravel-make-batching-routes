@@ -297,6 +297,27 @@ PHP;
             $queryParams = implode(PHP_EOL . '    ', $queryParams);
 
             $tests[] = <<<PHP
+it('should retrieves grouped values from {$table['name']}', function () {
+    \$values = $modelNamespace::withoutEvents(fn() => $modelNamespace::factory(MODEL_INSTANCES_COUNT)->create());
+    $queryParams
+
+    \$query = http_build_query(\$queryParams);
+    \$response = \$this{$middlewareRemotion}->get("api/batching/grouped/{$table['name']}?\$query");
+
+    \$sorter = \$queryParams['$primaryColumn'];
+    \$values = \$values->groupBy('$primaryColumn');
+    \$values = \$values->sortKeysUsing(function (mixed \$a, mixed \$b) use (\$sorter): int {
+        \$indexA = array_search(\$a, \$sorter);
+        \$indexB = array_search(\$b, \$sorter);
+
+        return \$indexA <=> \$indexB;
+    });
+    \$expected = \$values->values()->toArray();
+
+    \$response->assertOk();
+    \$response->assertJson(\$expected);
+});
+
 it('should retrieves all values from {$table['name']} with controller sorting', function () {
     \$values = $modelNamespace::withoutEvents(fn() => $modelNamespace::factory(MODEL_INSTANCES_COUNT)->create());
     $queryParams
