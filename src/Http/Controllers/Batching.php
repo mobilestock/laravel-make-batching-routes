@@ -12,6 +12,7 @@ use RuntimeException;
 
 class Batching
 {
+    // @issue: https://github.com/mobilestock/backend/issues/1294
     public function find()
     {
         $uriPath = Request::path();
@@ -75,6 +76,63 @@ class Batching
             $indexB = array_search($b[$key], $sorter);
             return $indexA <=> $indexB;
         });
+
+        return $databaseValues;
+    }
+
+    // @issue: https://github.com/mobilestock/backend/issues/1294
+    public function findGrouped()
+    {
+        $uriPath = Request::path();
+        $routeResource = str_replace('api/batching/grouped/', '', $uriPath);
+
+        $namespace = App::getNamespace();
+        $namespace = rtrim($namespace, '\\');
+
+        $modelPath = App::path('Models');
+        $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($modelPath));
+        foreach ($files as $file) {
+            if ($file->isDir() || $file->getExtension() !== 'php') {
+                continue;
+            }
+
+            $class = ClassNameSanitize::sanitizeModel($file);
+            if (!class_exists($class)) {
+                continue;
+            }
+
+            $model = App::make($class);
+            $tableName = $model->getTable();
+            if ($tableName === $routeResource) {
+                break;
+            }
+
+            $model = null;
+        }
+
+        if (empty($model)) {
+            throw new RuntimeException("Model não encontrada pra tabela: $routeResource");
+        }
+
+        /**  @var \Illuminate\Database\Eloquent\Model $model*/
+        $query = $model::query();
+        $requestData = Request::all();
+
+        foreach ($requestData as $key => $value) {
+            $query->whereIn($key, $value);
+        }
+
+        $key = array_key_first($requestData);
+        $databaseValues = $query->get();
+        $databaseValues = $databaseValues->groupBy($key);
+        $sorter = $requestData[$key];
+        $databaseValues = $databaseValues->sortKeysUsing(function (mixed $a, mixed $b) use ($sorter): int {
+            $indexA = array_search($a, $sorter);
+            $indexB = array_search($b, $sorter);
+            return $indexA <=> $indexB;
+        });
+        $databaseValues = $databaseValues->values();
+        $databaseValues = $databaseValues->toArray();
 
         return $databaseValues;
     }
