@@ -59,6 +59,9 @@ class Batching
 
         /**  @var \Illuminate\Database\Eloquent\Model $model*/
         $query = $model::query()->limit($limit)->offset($offset);
+        if (App::environment('testing')) {
+            $query->withoutGlobalScopes();
+        }
 
         foreach ($requestData as $key => $value) {
             $query->whereIn($key, $value);
@@ -116,6 +119,9 @@ class Batching
 
         /**  @var \Illuminate\Database\Eloquent\Model $model*/
         $query = $model::query();
+        if (App::environment('testing')) {
+            $query->withoutGlobalScopes();
+        }
         $requestData = Request::all();
 
         foreach ($requestData as $key => $value) {
