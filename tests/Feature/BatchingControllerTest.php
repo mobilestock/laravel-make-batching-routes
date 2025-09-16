@@ -4,7 +4,6 @@ use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Eloquent\Model;
 use MobileStock\MakeBatchingRoutes\Http\Controllers\Batching;
-use RuntimeException;
 
 $MODEL_PATH = __DIR__ . '/../Temp/Models';
 
