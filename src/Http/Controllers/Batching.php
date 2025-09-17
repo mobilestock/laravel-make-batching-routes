@@ -2,6 +2,7 @@
 
 namespace MobileStock\MakeBatchingRoutes\Http\Controllers;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Validation\Rule;
@@ -132,6 +133,9 @@ class Batching
         $databaseValues = $query->get();
         $databaseValues = $databaseValues->groupBy($key);
         $sorter = $requestData[$key];
+        $databaseValues = Collection::make($sorter)->mapWithKeys(
+            fn(string $key): array => [$key => $databaseValues->get($key, Collection::make())]
+        );
         $databaseValues = $databaseValues->sortKeysUsing(function (mixed $a, mixed $b) use ($sorter): int {
             $indexA = array_search($a, $sorter);
             $indexB = array_search($b, $sorter);
