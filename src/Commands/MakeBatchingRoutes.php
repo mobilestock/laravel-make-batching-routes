@@ -56,6 +56,7 @@ class MakeBatchingRoutes extends Command
 
             $casts = $model->getCasts();
             $enums = array_filter($casts, 'enum_exists');
+            $jsons = array_filter($casts, fn(string $type): bool => Str::startsWith($type, ['array', 'json']));
 
             $hiddenColumns = $model->getHidden();
             $columns = $this->getTableColumnsFromSchema($tableName);
@@ -64,6 +65,7 @@ class MakeBatchingRoutes extends Command
                 'name' => $tableName,
                 'columns' => array_keys($columns),
                 'enums' => array_keys($enums),
+                'jsons' => array_keys($jsons),
             ];
 
             $fields = $this->convertColumnsToFactoryDefinitions($columns);
@@ -290,9 +292,13 @@ PHP;
 
             $queryParams = [];
             foreach ($table['columns'] as $column) {
-                $convertEnumToString = in_array($column, $table['enums']) ? '->pluck(\'value\')' : '';
+                $transformer = match (true) {
+                    in_array($column, $table['enums']) => '->pluck(\'value\')',
+                    in_array($column, $table['jsons']) => '->map(\'json_encode\')',
+                    default => '',
+                };
 
-                $queryParams[] = "\$queryParams['$column'] = \$values->pluck('$column'){$convertEnumToString}->toArray();";
+                $queryParams[] = "\$queryParams['$column'] = \$values->pluck('$column'){$transformer}->toArray();";
             }
             $queryParams = implode(PHP_EOL . '    ', $queryParams);
 
