@@ -327,7 +327,8 @@ it('should retrieves grouped values from {$table['name']}', function () {
 it('should retrieves all values from {$table['name']} with controller sorting', function () {
     \$values = $modelNamespace::withoutEvents(fn() => $modelNamespace::factory(MODEL_INSTANCES_COUNT)->create());
     $queryParams
-    \$queryParams['order_by'] = '$primaryColumn';
+    \$queryParams['order_by_field'] = '$primaryColumn';
+    \$queryParams['order_by_direction'] = OrderByEnum::ASC->value;
 
     \$query = http_build_query(\$queryParams);
     \$response = \$this{$middlewareRemotion}->get("api/batching/{$table['name']}?\$query");
@@ -356,6 +357,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Schema;
+use MobileStock\MakeBatchingRoutes\Enum\OrderByEnum;
 use MobileStock\MakeBatchingRoutes\Http\Controllers\Batching;
 
 uses(RefreshDatabase::class);
