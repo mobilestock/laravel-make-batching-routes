@@ -56,7 +56,7 @@ it('should throws exception if no :dataset is found', function (string $filePath
 dataset('datasetControllerFindSucceeds', function () {
     return [
         'with' => [
-            'parameters' => ['id' => [3, 2, 1], 'order_by' => 'id'],
+            'parameters' => ['id' => [3, 2, 1], 'order_by_field' => 'id'],
             'expected' => [['id' => 3], ['id' => 2], ['id' => 1]],
         ],
         'without' => [
