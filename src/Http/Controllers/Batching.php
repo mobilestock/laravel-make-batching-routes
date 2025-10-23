@@ -5,7 +5,9 @@ namespace MobileStock\MakeBatchingRoutes\Http\Controllers;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
+use MobileStock\MakeBatchingRoutes\Enum\OrderByEnum;
 use MobileStock\MakeBatchingRoutes\Utils\ClassNameSanitize;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -47,19 +49,34 @@ class Batching
             throw new RuntimeException("Model não encontrada pra tabela: $routeResource");
         }
 
-        $requestData = Request::except(['limit', 'page', 'order_by']);
+        $requestData = Request::except(['limit', 'page', 'order_by_field', 'order_by_direction']);
+        $isSearchColumnsEmpty = empty($requestData);
+        /**  @var \Illuminate\Database\Eloquent\Model $model*/
+        if ($isSearchColumnsEmpty) {
+            $table = $model->getTable();
+            $columns = Schema::getColumnListing($table);
+        } else {
+            $columns = array_keys($requestData);
+        }
+
         $paginationOptions = Request::validate([
             'limit' => ['nullable', 'integer', 'min:0', 'max:1000'],
             'page' => ['nullable', 'integer', 'min:1'],
-            'order_by' => ['nullable', Rule::in(array_keys($requestData))],
+            'order_by_field' => ['nullable', Rule::in($columns)],
+            'order_by_direction' => ['nullable', Rule::enum(OrderByEnum::class)],
         ]);
 
         $limit = $paginationOptions['limit'] ?? 1000;
         $page = $paginationOptions['page'] ?? 1;
         $offset = $limit * ($page - 1);
 
-        /**  @var \Illuminate\Database\Eloquent\Model $model*/
         $query = $model::query()->limit($limit)->offset($offset);
+        if ($isSearchColumnsEmpty) {
+            $paginationOptions['order_by_field'] ??= current($columns);
+            $paginationOptions['order_by_direction'] ??= OrderByEnum::ASC->value;
+
+            $query->orderBy($paginationOptions['order_by_field'], $paginationOptions['order_by_direction']);
+        }
         if (App::environment('testing')) {
             $query->withoutGlobalScopes();
         }
@@ -69,11 +86,11 @@ class Batching
         }
 
         $databaseValues = $query->get()->toArray();
-        if (empty($paginationOptions['order_by'])) {
+        if ($isSearchColumnsEmpty || empty($paginationOptions['order_by_field'])) {
             return $databaseValues;
         }
 
-        $key = $paginationOptions['order_by'];
+        $key = $paginationOptions['order_by_field'];
         $sorter = $requestData[$key];
         usort($databaseValues, function (array $a, array $b) use ($key, $sorter): int {
             $indexA = array_search($a[$key], $sorter);
