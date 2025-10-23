@@ -3,6 +3,7 @@
 use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Schema;
 use MobileStock\MakeBatchingRoutes\Http\Controllers\Batching;
 
 $MODEL_PATH = __DIR__ . '/../Temp/Models';
@@ -80,6 +81,9 @@ it('should work correctly :dataset sorting', function (array $parameters, array 
         ->with('Models')
         ->twice()
         ->andReturn('/laravel-make-batching-routes/tests/Temp/Models');
+    Schema::shouldReceive('getColumnListing')
+        ->with('tables')
+        ->andReturn(['id']);
     File::put(
         "$MODEL_PATH/Table.php",
         '<?php namespace Tests\Temp\Models; class Table extends \Illuminate\Database\Eloquent\Model {}'
