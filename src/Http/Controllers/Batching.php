@@ -50,11 +50,10 @@ class Batching
         }
 
         $requestData = Request::except(['limit', 'page', 'order_by_field', 'order_by_direction']);
-
         $paginationOptions = Request::validate([
             'limit' => ['nullable', 'integer', 'min:0', 'max:1000'],
             'page' => ['nullable', 'integer', 'min:1'],
-            'order_by_field' => ['nullable', Rule::in(array_keys($requestData))],
+            'order_by_field' => ['nullable', 'string'],
             'order_by_direction' => ['nullable', Rule::enum(\MobileStock\MakeBatchingRoutes\Enum\OrderByEnum::class)],
         ]);
 
@@ -81,7 +80,7 @@ class Batching
         }
 
         $databaseValues = $query->get()->toArray();
-        if (empty($paginationOptions['order_by_field'])) {
+        if (empty($requestData) || empty($paginationOptions['order_by_field'])) {
             return $databaseValues;
         }
 
