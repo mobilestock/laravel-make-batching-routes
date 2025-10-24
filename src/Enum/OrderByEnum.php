@@ -4,6 +4,6 @@ namespace MobileStock\MakeBatchingRoutes\Enum;
 
 enum OrderByEnum: string
 {
-    case ASC = 'asc';
-    case DESC = 'desc';
+    case ASC = 'ASC';
+    case DESC = 'DESC';
 }
