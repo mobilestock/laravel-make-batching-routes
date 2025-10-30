@@ -180,7 +180,7 @@ class MakeBatchingRoutes extends Command
         $fakerString =
             $matches[1] === 'enum'
                 ? "\$this->faker{$uniqueKey}->randomElement([$columnValues])"
-                : "\$this->faker{$uniqueKey}->randomElements([$columnValues])";
+                : "implode(',', \$this->faker{$uniqueKey}->randomElements([$columnValues]))";
 
         return $fakerString;
     }
