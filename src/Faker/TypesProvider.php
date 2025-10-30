@@ -3,6 +3,8 @@
 namespace MobileStock\MakeBatchingRoutes\Faker;
 
 use Faker\Provider\Base;
+use Illuminate\Database\Query\Expression;
+use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
 class TypesProvider extends Base
@@ -15,18 +17,19 @@ class TypesProvider extends Base
         return "POINT($longitude $latitude)";
     }
 
-    public function polygon(): string
+    public function polygon(): Expression
     {
-        $polygon = [];
+        $points = [];
         for ($i = 0; $i < 3; $i++) {
-            $latitude = $this->generator->latitude();
-            $longitude = $this->generator->longitude();
-            $polygon[] = "$longitude $latitude";
+            $latitude = $this->generator->unique()->latitude();
+            $longitude = $this->generator->unique()->longitude();
+            $points[] = "$longitude $latitude";
         }
 
-        $polygon[] = $polygon[0];
+        $points[] = $points[0];
+        $points = implode(',', $points);
 
-        return 'POLYGON((' . implode(',', $polygon) . '))';
+        return DB::raw("ST_GeomFromText('POLYGON(($points))')");
     }
 
     public function randomLetters(int $maxLength): string
