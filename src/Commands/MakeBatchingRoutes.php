@@ -304,7 +304,8 @@ PHP;
 
             $tests[] = <<<PHP
 it('should retrieves grouped values from {$table['name']}', function () {
-    \$values = $modelNamespace::withoutEvents(fn() => $modelNamespace::factory(MODEL_INSTANCES_COUNT)->create());
+    \$model = new $modelNamespace();
+    \$values = \$model::withoutEvents(fn() => \$model::factory(MODEL_INSTANCES_COUNT)->create());
     $queryParams
 
     \$query = http_build_query(\$queryParams);
@@ -325,9 +326,12 @@ it('should retrieves grouped values from {$table['name']}', function () {
 });
 
 it('should retrieves all values from {$table['name']} with controller sorting', function () {
-    \$values = $modelNamespace::withoutEvents(fn() => $modelNamespace::factory(MODEL_INSTANCES_COUNT)->create());
+    \$model = new $modelNamespace();
+    \$values = \$model::withoutEvents(fn() => \$model::factory(MODEL_INSTANCES_COUNT)->create());
     $queryParams
     \$queryParams['order_by_field'] = '$primaryColumn';
+
+    // TODO: Tratar retorno
 
     \$query = http_build_query(\$queryParams);
     \$response = \$this{$middlewareRemotion}->get("api/batching/{$table['name']}?\$query");
@@ -336,7 +340,8 @@ it('should retrieves all values from {$table['name']} with controller sorting', 
 });
 
 it('should retrieves all values from {$table['name']} without controller sorting', function () {
-    \$values = $modelNamespace::withoutEvents(fn() => $modelNamespace::factory(MODEL_INSTANCES_COUNT)->create());
+    \$model = new $modelNamespace();
+    \$values = \$model::withoutEvents(fn() => \$model::factory(MODEL_INSTANCES_COUNT)->create());
     \$request = Request::create('api/batching/{$table['name']}');
     Request::swap(\$request);
 
