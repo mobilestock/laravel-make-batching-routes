@@ -312,11 +312,13 @@ PHP;
             if (!empty($polygonMapper)) {
                 $polygonMapper = implode(PHP_EOL . '        ', $polygonMapper);
                 $polygonConverter = <<<PHP
+
     \$values->transform(function ($modelNamespace \$item): $modelNamespace {
         $polygonMapper
 
         return \$item;
     });
+
 PHP;
             }
 
@@ -352,9 +354,7 @@ it('should retrieves all values from {$table['name']} with controller sorting', 
 
     \$query = http_build_query(\$queryParams);
     \$response = \$this{$middlewareRemotion}->get("api/batching/{$table['name']}?\$query");
-
 $polygonConverter
-
     \$response->assertOk();
     \$response->assertJson(\$values->toArray());
 });
