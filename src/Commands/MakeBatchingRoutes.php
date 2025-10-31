@@ -57,7 +57,7 @@ class MakeBatchingRoutes extends Command
             $casts = $model->getCasts();
             $enums = array_filter($casts, 'enum_exists');
             $jsons = array_filter($casts, fn(string $type): bool => Str::startsWith($type, ['array', 'json']));
-            $poligons = array_filter($casts, fn(string $type): bool => Str::contains($type, 'polygon', true));
+            $polygons = array_filter($casts, fn(string $type): bool => Str::contains($type, 'polygon', true));
 
             $hiddenColumns = $model->getHidden();
             $columns = $this->getTableColumnsFromSchema($tableName);
@@ -67,7 +67,7 @@ class MakeBatchingRoutes extends Command
                 'columns' => array_keys($columns),
                 'enums' => array_keys($enums),
                 'jsons' => array_keys($jsons),
-                'poligons' => array_keys($poligons),
+                'polygons' => array_keys($polygons),
             ];
 
             $fields = $this->convertColumnsToFactoryDefinitions($columns);
@@ -302,7 +302,7 @@ PHP;
 
                 $queryParams[] = "\$queryParams['$column'] = \$values->pluck('$column'){$transformer}->toArray();";
 
-                if (in_array($column, $table['poligons'])) {
+                if (in_array($column, $table['polygons'])) {
                     $polygonMapper[] = "\$item->$column = \$item->find(\$item->$primaryColumn, ['$column'])->$column;";
                 }
             }
