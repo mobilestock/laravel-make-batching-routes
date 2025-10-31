@@ -286,6 +286,7 @@ it('should handle the command correctly', function () {
             'columns' => ['id', 'name', 'created_at', 'updated_at'],
             'enums' => [],
             'jsons' => [],
+            'polygons' => [],
         ],
     ];
 
