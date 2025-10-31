@@ -9,12 +9,13 @@ use InvalidArgumentException;
 
 class TypesProvider extends Base
 {
-    public function point(): string
+    public function point(): Expression
     {
         $latitude = $this->generator->latitude();
         $longitude = $this->generator->longitude();
+        $point = DB::raw("ST_GeomFromText('POINT($longitude $latitude)')");
 
-        return "POINT($longitude $latitude)";
+        return $point;
     }
 
     public function polygon(): Expression
