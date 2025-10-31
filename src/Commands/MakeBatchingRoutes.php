@@ -57,7 +57,10 @@ class MakeBatchingRoutes extends Command
             $casts = $model->getCasts();
             $enums = array_filter($casts, 'enum_exists');
             $jsons = array_filter($casts, fn(string $type): bool => Str::startsWith($type, ['array', 'json']));
-            $polygons = array_filter($casts, fn(string $type): bool => Str::contains($type, 'polygon', true));
+            $spatials = array_filter(
+                $casts,
+                fn(string $type): bool => Str::contains($type, ['point', 'polygon'], true)
+            );
 
             $hiddenColumns = $model->getHidden();
             $columns = $this->getTableColumnsFromSchema($tableName);
@@ -67,7 +70,7 @@ class MakeBatchingRoutes extends Command
                 'columns' => array_keys($columns),
                 'enums' => array_keys($enums),
                 'jsons' => array_keys($jsons),
-                'polygons' => array_keys($polygons),
+                'spatials' => array_keys($spatials),
             ];
 
             $fields = $this->convertColumnsToFactoryDefinitions($columns);
@@ -292,7 +295,7 @@ PHP;
 
             $primaryColumn = current($table['columns']);
 
-            $polygonMapper = $queryParams = [];
+            $spatialMapper = $queryParams = [];
             foreach ($table['columns'] as $column) {
                 $transformer = match (true) {
                     in_array($column, $table['enums']) => '->pluck(\'value\')',
@@ -302,19 +305,19 @@ PHP;
 
                 $queryParams[] = "\$queryParams['$column'] = \$values->pluck('$column'){$transformer}->toArray();";
 
-                if (in_array($column, $table['polygons'])) {
-                    $polygonMapper[] = "\$item->$column = \$item->find(\$item->$primaryColumn, ['$column'])->$column;";
+                if (in_array($column, $table['spatials'])) {
+                    $spatialMapper[] = "\$item->$column = \$item->find(\$item->$primaryColumn, ['$column'])->$column;";
                 }
             }
             $queryParams = implode(PHP_EOL . '    ', $queryParams);
 
-            $polygonConverter = '';
-            if (!empty($polygonMapper)) {
-                $polygonMapper = implode(PHP_EOL . '        ', $polygonMapper);
-                $polygonConverter = <<<PHP
+            $spatialConverter = '';
+            if (!empty($spatialMapper)) {
+                $spatialMapper = implode(PHP_EOL . '        ', $spatialMapper);
+                $spatialConverter = <<<PHP
 
     \$values->transform(function ($modelNamespace \$item): $modelNamespace {
-        $polygonMapper
+        $spatialMapper
 
         return \$item;
     });
@@ -332,7 +335,7 @@ it('should retrieves grouped values from {$table['name']}', function () {
     \$response = \$this{$middlewareRemotion}->get("api/batching/grouped/{$table['name']}?\$query");
 
     \$sorter = \$queryParams['$primaryColumn'];
-$polygonConverter
+$spatialConverter
     \$values = \$values->groupBy('$primaryColumn');
     \$values = \$values->sortKeysUsing(function (mixed \$a, mixed \$b) use (\$sorter): int {
         \$indexA = array_search(\$a, \$sorter);
@@ -354,7 +357,7 @@ it('should retrieves all values from {$table['name']} with controller sorting', 
 
     \$query = http_build_query(\$queryParams);
     \$response = \$this{$middlewareRemotion}->get("api/batching/{$table['name']}?\$query");
-$polygonConverter
+$spatialConverter
     \$response->assertOk();
     \$response->assertJson(\$values->toArray());
 });
@@ -367,7 +370,7 @@ it('should retrieves all values from {$table['name']} without controller sorting
 
     \$controller = new Batching();
     \$response = \$controller->find();
-$polygonConverter
+$spatialConverter
     \$expected = \$values->sortBy('$primaryColumn')->values()->toArray();
     expect(\$response)->toBe(\$expected);
 });
