@@ -260,7 +260,7 @@ it('should insert tests :dataset middlewares correctly', function (
                 'columns' => ['id', 'name', 'status', 'metadata', 'area'],
                 'enums' => ['status'],
                 'jsons' => ['metadata'],
-                'polygons' => ['area'],
+                'spatials' => ['area'],
             ],
         ],
     ]);
@@ -286,7 +286,7 @@ it('should handle the command correctly', function () {
             'columns' => ['id', 'name', 'created_at', 'updated_at'],
             'enums' => [],
             'jsons' => [],
-            'polygons' => [],
+            'spatials' => [],
         ],
     ];
 
