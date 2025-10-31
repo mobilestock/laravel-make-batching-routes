@@ -13,9 +13,16 @@ beforeEach(function () {
     $this->typesProvider = $faker;
 });
 
-it('should generates a valid POINT string', function () use ($REGEXP_COORDINATES) {
+it('should generates a valid POINT string', function () {
+    $value = new Expression("ST_GeomFromText('POINT(48.38553 80.52454)')");
+    $dbSpy = DB::spy()->makePartial();
+    $dbSpy->shouldReceive('raw')->andReturnUsing(fn() => $value);
+
     $point = $this->typesProvider->point();
-    expect($point)->toMatch("/^POINT\($REGEXP_COORDINATES $REGEXP_COORDINATES\)$/");
+
+    $dbSpy->shouldHaveReceived('raw')->once();
+    expect($point)->toBeInstanceOf(Expression::class);
+    expect($point)->toBe($value);
 });
 
 it('should generates a valid POLYGON string', function () {
