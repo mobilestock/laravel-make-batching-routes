@@ -57,6 +57,7 @@ class MakeBatchingRoutes extends Command
             $casts = $model->getCasts();
             $enums = array_filter($casts, 'enum_exists');
             $jsons = array_filter($casts, fn(string $type): bool => Str::startsWith($type, ['array', 'json']));
+            $poligons = array_filter($casts, fn(string $type): bool => Str::contains($type, 'polygon', true));
 
             $hiddenColumns = $model->getHidden();
             $columns = $this->getTableColumnsFromSchema($tableName);
@@ -66,6 +67,7 @@ class MakeBatchingRoutes extends Command
                 'columns' => array_keys($columns),
                 'enums' => array_keys($enums),
                 'jsons' => array_keys($jsons),
+                'poligons' => array_keys($poligons),
             ];
 
             $fields = $this->convertColumnsToFactoryDefinitions($columns);
@@ -290,7 +292,7 @@ PHP;
 
             $primaryColumn = current($table['columns']);
 
-            $queryParams = [];
+            $polygonMapper = $queryParams = [];
             foreach ($table['columns'] as $column) {
                 $transformer = match (true) {
                     in_array($column, $table['enums']) => '->pluck(\'value\')',
@@ -299,8 +301,24 @@ PHP;
                 };
 
                 $queryParams[] = "\$queryParams['$column'] = \$values->pluck('$column'){$transformer}->toArray();";
+
+                if (in_array($column, $table['poligons'])) {
+                    $polygonMapper[] = "\$item->$column = \$item->find(\$item->$primaryColumn, ['$column'])->$column;";
+                }
             }
             $queryParams = implode(PHP_EOL . '    ', $queryParams);
+
+            $polygonConverter = '';
+            if (!empty($polygonMapper)) {
+                $polygonMapper = implode(PHP_EOL . '        ', $polygonMapper);
+                $polygonConverter = <<<PHP
+    \$values->transform(function ($modelNamespace \$item): $modelNamespace {
+        $polygonMapper
+
+        return \$item;
+    });
+PHP;
+            }
 
             $tests[] = <<<PHP
 it('should retrieves grouped values from {$table['name']}', function () {
@@ -312,6 +330,7 @@ it('should retrieves grouped values from {$table['name']}', function () {
     \$response = \$this{$middlewareRemotion}->get("api/batching/grouped/{$table['name']}?\$query");
 
     \$sorter = \$queryParams['$primaryColumn'];
+$polygonConverter
     \$values = \$values->groupBy('$primaryColumn');
     \$values = \$values->sortKeysUsing(function (mixed \$a, mixed \$b) use (\$sorter): int {
         \$indexA = array_search(\$a, \$sorter);
@@ -331,10 +350,11 @@ it('should retrieves all values from {$table['name']} with controller sorting', 
     $queryParams
     \$queryParams['order_by_field'] = '$primaryColumn';
 
-    // TODO: Tratar retorno
-
     \$query = http_build_query(\$queryParams);
     \$response = \$this{$middlewareRemotion}->get("api/batching/{$table['name']}?\$query");
+
+$polygonConverter
+
     \$response->assertOk();
     \$response->assertJson(\$values->toArray());
 });
@@ -347,6 +367,7 @@ it('should retrieves all values from {$table['name']} without controller sorting
 
     \$controller = new Batching();
     \$response = \$controller->find();
+$polygonConverter
     \$expected = \$values->sortBy('$primaryColumn')->values()->toArray();
     expect(\$response)->toBe(\$expected);
 });
