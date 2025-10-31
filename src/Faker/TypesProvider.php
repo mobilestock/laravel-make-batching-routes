@@ -28,8 +28,9 @@ class TypesProvider extends Base
 
         $points[] = $points[0];
         $points = implode(',', $points);
+        $polygonExpression = DB::raw("ST_GeomFromText('POLYGON(($points))')");
 
-        return DB::raw("ST_GeomFromText('POLYGON(($points))')");
+        return $polygonExpression;
     }
 
     public function randomLetters(int $maxLength): string

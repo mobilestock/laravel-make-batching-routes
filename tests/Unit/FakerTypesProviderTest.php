@@ -1,6 +1,8 @@
 <?php
 
 use Faker\Factory;
+use Illuminate\Database\Query\Expression;
+use Illuminate\Support\Facades\DB;
 use MobileStock\MakeBatchingRoutes\Faker\TypesProvider;
 
 $REGEXP_COORDINATES = '-?\d+(\.\d+)?';
@@ -16,11 +18,18 @@ it('should generates a valid POINT string', function () use ($REGEXP_COORDINATES
     expect($point)->toMatch("/^POINT\($REGEXP_COORDINATES $REGEXP_COORDINATES\)$/");
 });
 
-it('should generates a valid POLYGON string', function () use ($REGEXP_COORDINATES) {
-    $polygon = $this->typesProvider->polygon();
-    expect($polygon)->toMatch(
-        "/^POLYGON\(\(($REGEXP_COORDINATES $REGEXP_COORDINATES(,$REGEXP_COORDINATES $REGEXP_COORDINATES){2},$REGEXP_COORDINATES $REGEXP_COORDINATES)\)\)$/"
+it('should generates a valid POLYGON string', function () {
+    $value = new Expression(
+        "ST_GeomFromText('POLYGON((48.38553 80.52454,5.951743 -41.557817,107.240909 -35.581728,48.38553 80.52454))')"
     );
+    $dbSpy = DB::spy()->makePartial();
+    $dbSpy->shouldReceive('raw')->andReturnUsing(fn() => $value);
+
+    $polygon = $this->typesProvider->polygon();
+
+    $dbSpy->shouldHaveReceived('raw')->once();
+    expect($polygon)->toBeInstanceOf(Expression::class);
+    expect($polygon)->toBe($value);
 });
 
 it('should generates random letters with specific length', function () {
