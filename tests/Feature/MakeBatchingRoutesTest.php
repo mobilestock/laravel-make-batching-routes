@@ -133,7 +133,7 @@ it('should convert columns correctly', function () {
         "'is_active' => \$this->faker->boolean(),",
         "'number' => \$this->faker->numberBetween(1, 64),",
         "'status' => \$this->faker->randomElement(['PENDING', 'APPROVED', 'REJECTED']),",
-        "'permissions' => \$this->faker->randomElements(['READ', 'WRITE']),",
+        "'permissions' => implode(',', \$this->faker->randomElements(['READ', 'WRITE'])),",
         "'note' => \$this->faker->randomFloat(2, 1, 64),",
         "'price' => \$this->faker->randomFloat(2, 1, 64),",
         "'cents' => \$this->faker->randomFloat(2, 1, 64),",
@@ -260,6 +260,7 @@ it('should insert tests :dataset middlewares correctly', function (
                 'columns' => ['id', 'name', 'status', 'metadata'],
                 'enums' => ['status'],
                 'jsons' => ['metadata'],
+                'polygons' => ['area'],
             ],
         ],
     ]);
