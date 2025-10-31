@@ -257,7 +257,7 @@ it('should insert tests :dataset middlewares correctly', function (
         [
             $modelNamespace => [
                 'name' => $tableName,
-                'columns' => ['id', 'name', 'status', 'metadata'],
+                'columns' => ['id', 'name', 'status', 'metadata', 'area'],
                 'enums' => ['status'],
                 'jsons' => ['metadata'],
                 'polygons' => ['area'],
