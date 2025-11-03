@@ -49,15 +49,14 @@ class Batching
             throw new RuntimeException("Model não encontrada pra tabela: $routeResource");
         }
 
-        $configsValidation = [
+        $requestData = Request::except(['limit', 'page', 'order_by_field', 'order_by_direction', 'without_scopes']);
+        $configs = Request::validate([
             'limit' => ['nullable', 'integer', 'min:0', 'max:1000'],
             'page' => ['nullable', 'integer', 'min:1'],
             'order_by_field' => ['nullable', 'string'],
             'order_by_direction' => ['nullable', Rule::enum(\MobileStock\MakeBatchingRoutes\Enum\OrderByEnum::class)],
             'without_scopes' => ['nullable', 'boolean'],
-        ];
-        $requestData = Request::except(array_keys($configsValidation));
-        $configs = Request::validate($configsValidation);
+        ]);
 
         $configs['without_scopes'] ??= false;
         $limit = $configs['limit'] ?? 1000;
