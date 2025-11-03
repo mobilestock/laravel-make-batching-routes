@@ -74,7 +74,7 @@ class Batching
 
             $query->orderBy($order, $direction);
         }
-        if (App::environment('testing')) {
+        if ($configs['without_scopes']) {
             $query->withoutGlobalScopes();
         }
 
