@@ -354,6 +354,7 @@ it('should retrieves all values from {$table['name']} with controller sorting', 
     \$values = \$model::withoutEvents(fn() => \$model::factory(MODEL_INSTANCES_COUNT)->create());
     $queryParams
     \$queryParams['order_by_field'] = '$primaryColumn';
+    \$queryParams['without_scopes'] = true;
 
     \$query = http_build_query(\$queryParams);
     \$response = \$this{$middlewareRemotion}->get("api/batching/{$table['name']}?\$query");
