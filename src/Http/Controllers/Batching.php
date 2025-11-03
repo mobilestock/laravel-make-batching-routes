@@ -49,16 +49,19 @@ class Batching
             throw new RuntimeException("Model não encontrada pra tabela: $routeResource");
         }
 
-        $requestData = Request::except(['limit', 'page', 'order_by_field', 'order_by_direction']);
-        $paginationOptions = Request::validate([
+        $configsValidation = [
             'limit' => ['nullable', 'integer', 'min:0', 'max:1000'],
             'page' => ['nullable', 'integer', 'min:1'],
             'order_by_field' => ['nullable', 'string'],
             'order_by_direction' => ['nullable', Rule::enum(\MobileStock\MakeBatchingRoutes\Enum\OrderByEnum::class)],
-        ]);
+            'without_scopes' => ['nullable', 'boolean'],
+        ];
+        $requestData = Request::except(array_keys($configsValidation));
+        $configs = Request::validate($configsValidation);
 
-        $limit = $paginationOptions['limit'] ?? 1000;
-        $page = $paginationOptions['page'] ?? 1;
+        $configs['without_scopes'] ??= false;
+        $limit = $configs['limit'] ?? 1000;
+        $page = $configs['page'] ?? 1;
         $offset = $limit * ($page - 1);
 
         /**  @var \Illuminate\Database\Eloquent\Model $model*/
@@ -66,8 +69,8 @@ class Batching
         if (empty($requestData)) {
             $table = $model->getTable();
             $columns = Schema::getColumnListing($table);
-            $order = $paginationOptions['order_by_field'] ?? current($columns);
-            $direction = $paginationOptions['order_by_direction'] ?? OrderByEnum::ASC->value;
+            $order = $configs['order_by_field'] ?? current($columns);
+            $direction = $configs['order_by_direction'] ?? OrderByEnum::ASC->value;
 
             $query->orderBy($order, $direction);
         }
@@ -80,11 +83,11 @@ class Batching
         }
 
         $databaseValues = $query->get()->toArray();
-        if (empty($requestData) || empty($paginationOptions['order_by_field'])) {
+        if (empty($requestData) || empty($configs['order_by_field'])) {
             return $databaseValues;
         }
 
-        $key = $paginationOptions['order_by_field'];
+        $key = $configs['order_by_field'];
         $sorter = $requestData[$key];
         usort($databaseValues, function (array $a, array $b) use ($key, $sorter): int {
             $indexA = array_search($a[$key], $sorter);
