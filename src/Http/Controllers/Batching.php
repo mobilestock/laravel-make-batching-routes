@@ -147,15 +147,22 @@ class Batching
         /**  @var \Illuminate\Database\Eloquent\Model $model*/
         $query = $model::query();
 
-        $canIgnoreScopes = false;
-        $withoutScopes = Request::header('X-Ignore-Scopes');
-        if (!empty($withoutScopes)) {
+        $shouldIgnoreScope = Request::header('X-Ignore-Scopes');
+        if (!empty($shouldIgnoreScope)) {
             $permissions = $model::getBatchingGlobalAccessPermissions();
-            $canIgnoreScopes = Gate::any($permissions);
+
+            $hasPermissionToIgnoreScopes = $permissions->some(function (string $permission): bool {
+                Auth::shouldUse($permission);
+                $allowed = Gate::allows($permission);
+
+                return $allowed;
+            });
+
+            if ($hasPermissionToIgnoreScopes) {
+                $query->withoutGlobalScopes();
+            }
         }
-        if ($canIgnoreScopes) {
-            $query->withoutGlobalScopes();
-        }
+
         $requestData = Request::all();
 
         foreach ($requestData as $key => $value) {
