@@ -3,6 +3,7 @@
 namespace MobileStock\MakeBatchingRoutes;
 
 use Illuminate\Auth\Middleware\Authenticate;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
@@ -20,9 +21,11 @@ trait HasBatchingEndpoint
         return $middlewares;
     }
 
-    protected static function getBatchingGlobalAccessPermissions(): array
+    /** @return Collection<string> */
+    protected static function getBatchingGlobalAccessPermissions(): Collection
     {
         $permissions = static::$globalAccessPermissions ?? ['admin'];
+        $permissions = Collection::make($permissions);
 
         return $permissions;
     }
