@@ -73,13 +73,14 @@ class Batching
             $query->orderBy($order, $direction);
         }
 
-        $withoutScopes = Request::header('X-Ignore-Scopes', false);
-        if ($withoutScopes) {
+        $canIgnoreScopes = false;
+        $withoutScopes = Request::header('X-Ignore-Scopes');
+        if (!empty($withoutScopes)) {
             $permissions = $model::getBatchingGlobalAccessPermissions();
-            $canIgnore = Gate::any($permissions);
-            if (!$canIgnore) {
-                $query->withoutGlobalScopes();
-            }
+            $canIgnoreScopes = Gate::any($permissions);
+        }
+        if (!$canIgnoreScopes) {
+            $query->withoutGlobalScopes();
         }
 
         foreach ($requestData as $key => $value) {
