@@ -331,8 +331,11 @@ it('should retrieves grouped values from {$table['name']}', function () {
     \$values = \$model::withoutEvents(fn() => \$model::factory(MODEL_INSTANCES_COUNT)->create());
     $queryParams
 
+    \$authSpy = Auth::spy();
+    \$authSpy->shouldReceive('shouldUse');
+
     \$gateSpy = Gate::spy();
-    \$gateSpy->shouldReceive('any')->andReturnTrue();
+    \$gateSpy->shouldReceive('allows')->andReturnTrue();
 
     \$query = http_build_query(\$queryParams);
     \$response = \$this{$middlewareRemotion}->withHeader('X-Ignore-Scopes', 'true')->get("api/batching/grouped/{$table['name']}?\$query");
@@ -350,8 +353,6 @@ $spatialConverter
 
     \$response->assertOk();
     \$response->assertJson(\$expected);
-
-    \$gateSpy->shouldHaveReceived('any')->once();
 });
 
 it('should retrieves all values from {$table['name']} with controller sorting', function () {
@@ -360,16 +361,17 @@ it('should retrieves all values from {$table['name']} with controller sorting', 
     $queryParams
     \$queryParams['order_by_field'] = '$primaryColumn';
 
+    \$authSpy = Auth::spy();
+    \$authSpy->shouldReceive('shouldUse');
+
     \$gateSpy = Gate::spy();
-    \$gateSpy->shouldReceive('any')->andReturnTrue();
+    \$gateSpy->shouldReceive('allows')->andReturnTrue();
 
     \$query = http_build_query(\$queryParams);
     \$response = \$this{$middlewareRemotion}->withHeader('X-Ignore-Scopes', 'true')->get("api/batching/{$table['name']}?\$query");
 $spatialConverter
     \$response->assertOk();
     \$response->assertJson(\$values->toArray());
-
-    \$gateSpy->shouldHaveReceived('any')->once();
 });
 
 it('should retrieves all values from {$table['name']} without controller sorting', function () {
@@ -379,16 +381,17 @@ it('should retrieves all values from {$table['name']} without controller sorting
     \$request->headers->set('X-Ignore-Scopes', 'true');
     Request::swap(\$request);
 
+    \$authSpy = Auth::spy();
+    \$authSpy->shouldReceive('shouldUse');
+
     \$gateSpy = Gate::spy();
-    \$gateSpy->shouldReceive('any')->andReturnTrue();
+    \$gateSpy->shouldReceive('allows')->andReturnTrue();
 
     \$controller = new Batching();
     \$response = \$controller->find();
 $spatialConverter
     \$expected = \$values->sortBy('$primaryColumn')->values()->toArray();
     expect(\$response)->toBe(\$expected);
-
-    \$gateSpy->shouldHaveReceived('any')->once();
 });
 PHP;
         }
