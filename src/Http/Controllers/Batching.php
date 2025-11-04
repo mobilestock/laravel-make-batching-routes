@@ -4,6 +4,7 @@ namespace MobileStock\MakeBatchingRoutes\Http\Controllers;
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Schema;
@@ -77,7 +78,12 @@ class Batching
         $withoutScopes = Request::header('X-Ignore-Scopes');
         if (!empty($withoutScopes)) {
             $permissions = $model::getBatchingGlobalAccessPermissions();
-            $canIgnoreScopes = Gate::any($permissions);
+            $canIgnoreScopes = $permissions->some(function (string $permission): bool {
+                Auth::shouldUse($permission);
+                $allowed = Gate::allows($permission);
+
+                return $allowed;
+            });
         }
         if ($canIgnoreScopes) {
             $query->withoutGlobalScopes();
