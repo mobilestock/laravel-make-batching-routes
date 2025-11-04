@@ -78,7 +78,7 @@ it('should work correctly :dataset sorting', function (array $parameters, array 
     $appSpy->shouldReceive('path')->andReturn('/laravel-make-batching-routes/tests/Temp/Models');
 
     $gateSpy = Gate::spy();
-    $gateSpy->shouldReceive('any')->andReturnTrue();
+    $gateSpy->shouldReceive('allows')->andReturnTrue();
 
     $schemaSpy = Schema::spy();
     $schemaSpy->shouldReceive('getColumnListing')->andReturn(['id']);
@@ -101,9 +101,13 @@ it('should work correctly :dataset sorting', function (array $parameters, array 
 
 namespace Tests\Temp\Models;
 
+use Illuminate\Database\Eloquent\Collection;
+
 class Table extends \Illuminate\Database\Eloquent\Model {
-    protected static function getBatchingGlobalAccessPermissions(): array {
-        return ['viewer'];
+
+    /** @return Collection<string> */
+    protected static function getBatchingGlobalAccessPermissions(): Collection {
+        return Collection::make(['viewer']);
     }
 }
 PHP
@@ -116,10 +120,7 @@ PHP
     $appSpy->shouldHaveReceived('getNamespace')->twice();
     $appSpy->shouldHaveReceived('path')->with('Models')->twice();
 
-    $gateSpy
-        ->shouldHaveReceived('any')
-        ->with(['viewer'])
-        ->once();
+    $gateSpy->shouldHaveReceived('allows')->with('viewer')->once();
 })->with('datasetControllerFindSucceeds');
 
 it('should return grouped values', function () use ($MODEL_PATH) {
@@ -132,7 +133,7 @@ it('should return grouped values', function () use ($MODEL_PATH) {
     $appSpy->shouldReceive('path')->andReturn('/laravel-make-batching-routes/tests/Temp/Models');
 
     $gateSpy = Gate::spy();
-    $gateSpy->shouldReceive('any')->andReturnTrue();
+    $gateSpy->shouldReceive('allows')->andReturnTrue();
 
     $pdoMock = Mockery::mock(PDO::class);
 
@@ -168,8 +169,5 @@ it('should return grouped values', function () use ($MODEL_PATH) {
     $appSpy->shouldHaveReceived('getNamespace')->twice();
     $appSpy->shouldHaveReceived('path')->with('Models')->twice();
 
-    $gateSpy
-        ->shouldHaveReceived('any')
-        ->with(['viewer'])
-        ->once();
+    $gateSpy->shouldHaveReceived('allows')->with('viewer')->once();
 });
