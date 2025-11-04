@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Auth\Middleware\Authenticate;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use MobileStock\MakeBatchingRoutes\HasBatchingEndpoint;
 
@@ -44,7 +45,7 @@ dataset('datasetGlobalAccessPermissions', [
         new class {
             use HasBatchingEndpoint;
         },
-        ['admin'],
+        Collection::make(['admin']),
     ],
     'no' => [
         new class {
@@ -52,7 +53,7 @@ dataset('datasetGlobalAccessPermissions', [
 
             protected static $globalAccessPermissions = [];
         },
-        [],
+        Collection::make([]),
     ],
     'custom' => [
         new class {
@@ -60,14 +61,15 @@ dataset('datasetGlobalAccessPermissions', [
 
             protected static $globalAccessPermissions = ['user', 'editor'];
         },
-        ['user', 'editor'],
+        Collection::make(['user', 'editor']),
     ],
 ]);
 
-it('should returns :dataset global access permissions', function (object $class, array $expectedPermissions) {
+it('should returns :dataset global access permissions', function (object $class, Collection $expectedPermissions) {
     $method = (new ReflectionClass($class))->getMethod('getBatchingGlobalAccessPermissions');
     $method->setAccessible(true);
     $permissions = $method->invoke(null);
 
-    expect($permissions)->toBe($expectedPermissions);
+    expect($permissions)->toBeInstanceOf(Collection::class);
+    expect($permissions->toArray())->toBe($expectedPermissions->toArray());
 })->with('datasetGlobalAccessPermissions');
