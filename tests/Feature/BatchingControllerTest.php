@@ -124,22 +124,15 @@ PHP
 
 it('should return grouped values', function () use ($MODEL_PATH) {
     $request = Request::create('api/batching/grouped/tables', parameters: ['id' => [3, 2, 1]]);
+    $request->headers->set('X-Ignore-Scopes', 'true');
     Request::swap($request);
-    App::partialMock()
-        ->shouldReceive('environment')
-        ->with('testing')
-        ->andReturnTrue()
-        ->shouldReceive('getNamespace')
-        ->twice()
-        ->andReturn('Tests\\Temp\\')
-        ->shouldReceive('path')
-        ->with('Models')
-        ->twice()
-        ->andReturn('/laravel-make-batching-routes/tests/Temp/Models');
-    File::put(
-        "$MODEL_PATH/Table.php",
-        '<?php namespace Tests\Temp\Models; class Table extends \Illuminate\Database\Eloquent\Model {}'
-    );
+
+    $appSpy = App::spy()->makePartial();
+    $appSpy->shouldReceive('getNamespace')->andReturn('Tests\\Temp\\');
+    $appSpy->shouldReceive('path')->andReturn('/laravel-make-batching-routes/tests/Temp/Models');
+
+    $gateSpy = Gate::spy();
+    $gateSpy->shouldReceive('any')->andReturnFalse();
 
     $pdoMock = Mockery::mock(PDO::class);
 
@@ -159,6 +152,11 @@ it('should return grouped values', function () use ($MODEL_PATH) {
 
     Model::setConnectionResolver($resolverMock);
 
+    File::put(
+        "$MODEL_PATH/Table.php",
+        '<?php namespace Tests\Temp\Models; class Table extends \Illuminate\Database\Eloquent\Model {}'
+    );
+
     $controller = new Batching();
     $response = $controller->findGrouped();
     expect($response)->toBe([
@@ -166,4 +164,12 @@ it('should return grouped values', function () use ($MODEL_PATH) {
         [['id' => 2, 'name' => 'Foo']],
         [['id' => 1, 'name' => 'Foo']],
     ]);
+
+    $appSpy->shouldHaveReceived('getNamespace')->twice();
+    $appSpy->shouldHaveReceived('path')->with('Models')->twice();
+
+    $gateSpy
+        ->shouldHaveReceived('any')
+        ->with(['viewer'])
+        ->once();
 });
