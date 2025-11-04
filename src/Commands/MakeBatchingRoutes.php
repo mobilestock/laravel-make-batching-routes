@@ -331,8 +331,11 @@ it('should retrieves grouped values from {$table['name']}', function () {
     \$values = \$model::withoutEvents(fn() => \$model::factory(MODEL_INSTANCES_COUNT)->create());
     $queryParams
 
+    \$gateSpy = Gate::spy();
+    \$gateSpy->shouldReceive('any')->andReturnTrue();
+
     \$query = http_build_query(\$queryParams);
-    \$response = \$this{$middlewareRemotion}->get("api/batching/grouped/{$table['name']}?\$query");
+    \$response = \$this{$middlewareRemotion}->withHeader('X-Ignore-Scopes', 'true')->get("api/batching/grouped/{$table['name']}?\$query");
 
     \$sorter = \$queryParams['$primaryColumn'];
 $spatialConverter
@@ -347,6 +350,8 @@ $spatialConverter
 
     \$response->assertOk();
     \$response->assertJson(\$expected);
+
+    \$gateSpy->shouldHaveReceived('any')->once();
 });
 
 it('should retrieves all values from {$table['name']} with controller sorting', function () {
@@ -355,24 +360,35 @@ it('should retrieves all values from {$table['name']} with controller sorting', 
     $queryParams
     \$queryParams['order_by_field'] = '$primaryColumn';
 
+    \$gateSpy = Gate::spy();
+    \$gateSpy->shouldReceive('any')->andReturnTrue();
+
     \$query = http_build_query(\$queryParams);
-    \$response = \$this{$middlewareRemotion}->get("api/batching/{$table['name']}?\$query");
+    \$response = \$this{$middlewareRemotion}->withHeader('X-Ignore-Scopes', 'true')->get("api/batching/{$table['name']}?\$query");
 $spatialConverter
     \$response->assertOk();
     \$response->assertJson(\$values->toArray());
+
+    \$gateSpy->shouldHaveReceived('any')->once();
 });
 
 it('should retrieves all values from {$table['name']} without controller sorting', function () {
     \$model = new $modelNamespace();
     \$values = \$model::withoutEvents(fn() => \$model::factory(MODEL_INSTANCES_COUNT)->create());
     \$request = Request::create('api/batching/{$table['name']}');
+    \$request->headers->set('X-Ignore-Scopes', 'true');
     Request::swap(\$request);
+
+    \$gateSpy = Gate::spy();
+    \$gateSpy->shouldReceive('any')->andReturnTrue();
 
     \$controller = new Batching();
     \$response = \$controller->find();
 $spatialConverter
     \$expected = \$values->sortBy('$primaryColumn')->values()->toArray();
     expect(\$response)->toBe(\$expected);
+
+    \$gateSpy->shouldHaveReceived('any')->once();
 });
 PHP;
         }
@@ -383,6 +399,7 @@ PHP;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Schema;
 use MobileStock\MakeBatchingRoutes\Http\Controllers\Batching;
