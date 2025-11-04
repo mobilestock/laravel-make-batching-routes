@@ -3,6 +3,7 @@
 use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use MobileStock\MakeBatchingRoutes\Http\Controllers\Batching;
 
@@ -69,7 +70,9 @@ dataset('datasetControllerFindSucceeds', function () {
 
 it('should work correctly :dataset sorting', function (array $parameters, array $expected) use ($MODEL_PATH) {
     $request = Request::create('api/batching/tables', parameters: $parameters);
+    $request->headers->set('X-Ignore-Scopes', 'true');
     Request::swap($request);
+
     App::partialMock()
         ->shouldReceive('getNamespace')
         ->twice()
@@ -83,8 +86,22 @@ it('should work correctly :dataset sorting', function (array $parameters, array 
         ->andReturn(['id']);
     File::put(
         "$MODEL_PATH/Table.php",
-        '<?php namespace Tests\Temp\Models; class Table extends \Illuminate\Database\Eloquent\Model {}'
+        <<<PHP
+<?php
+
+namespace Tests\Temp\Models;
+
+class Table extends \Illuminate\Database\Eloquent\Model {
+    protected static function getBatchingGlobalAccessPermissions(): array {
+        return ['viewer'];
+    }
+}
+PHP
     );
+    Gate::shouldReceive('any')
+        ->with(['viewer'])
+        ->once()
+        ->andReturnFalse();
 
     $pdoMock = Mockery::mock(PDO::class);
 
