@@ -79,7 +79,7 @@ class Batching
             $permissions = $model::getBatchingGlobalAccessPermissions();
             $canIgnoreScopes = Gate::any($permissions);
         }
-        if (!$canIgnoreScopes) {
+        if ($canIgnoreScopes) {
             $query->withoutGlobalScopes();
         }
 
@@ -146,7 +146,7 @@ class Batching
             $permissions = $model::getBatchingGlobalAccessPermissions();
             $canIgnoreScopes = Gate::any($permissions);
         }
-        if (!$canIgnoreScopes) {
+        if ($canIgnoreScopes) {
             $query->withoutGlobalScopes();
         }
         $requestData = Request::all();

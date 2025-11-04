@@ -78,7 +78,7 @@ it('should work correctly :dataset sorting', function (array $parameters, array 
     $appSpy->shouldReceive('path')->andReturn('/laravel-make-batching-routes/tests/Temp/Models');
 
     $gateSpy = Gate::spy();
-    $gateSpy->shouldReceive('any')->andReturnFalse();
+    $gateSpy->shouldReceive('any')->andReturnTrue();
 
     $schemaSpy = Schema::spy();
     $schemaSpy->shouldReceive('getColumnListing')->andReturn(['id']);
@@ -132,7 +132,7 @@ it('should return grouped values', function () use ($MODEL_PATH) {
     $appSpy->shouldReceive('path')->andReturn('/laravel-make-batching-routes/tests/Temp/Models');
 
     $gateSpy = Gate::spy();
-    $gateSpy->shouldReceive('any')->andReturnFalse();
+    $gateSpy->shouldReceive('any')->andReturnTrue();
 
     $pdoMock = Mockery::mock(PDO::class);
 
