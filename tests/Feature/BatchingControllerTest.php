@@ -73,17 +73,13 @@ it('should work correctly :dataset sorting', function (array $parameters, array 
     $request->headers->set('X-Ignore-Scopes', 'true');
     Request::swap($request);
 
-    App::partialMock()
-        ->shouldReceive('getNamespace')
-        ->twice()
-        ->andReturn('Tests\\Temp\\')
-        ->shouldReceive('path')
-        ->with('Models')
-        ->twice()
-        ->andReturn('/laravel-make-batching-routes/tests/Temp/Models');
-    Schema::shouldReceive('getColumnListing')
-        ->with('tables')
-        ->andReturn(['id']);
+    $appSpy = App::spy()->makePartial();
+    $appSpy->shouldReceive('getNamespace')->andReturn('Tests\\Temp\\');
+    $appSpy->shouldReceive('path')->andReturn('/laravel-make-batching-routes/tests/Temp/Models');
+
+    $gateSpy = Gate::spy();
+    $gateSpy->shouldReceive('any')->andReturnFalse();
+
     File::put(
         "$MODEL_PATH/Table.php",
         <<<PHP
@@ -98,10 +94,6 @@ class Table extends \Illuminate\Database\Eloquent\Model {
 }
 PHP
     );
-    Gate::shouldReceive('any')
-        ->with(['viewer'])
-        ->once()
-        ->andReturnFalse();
 
     $pdoMock = Mockery::mock(PDO::class);
 
@@ -117,6 +109,14 @@ PHP
     $controller = new Batching();
     $response = $controller->find();
     expect($response)->toBe($expected);
+
+    $appSpy->shouldHaveReceived('getNamespace')->twice();
+    $appSpy->shouldHaveReceived('path')->with('Models')->twice();
+
+    $gateSpy
+        ->shouldHaveReceived('any')
+        ->with(['viewer'])
+        ->once();
 })->with('datasetControllerFindSucceeds');
 
 it('should return grouped values', function () use ($MODEL_PATH) {
