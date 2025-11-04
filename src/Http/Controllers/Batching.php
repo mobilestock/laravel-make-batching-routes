@@ -139,7 +139,14 @@ class Batching
 
         /**  @var \Illuminate\Database\Eloquent\Model $model*/
         $query = $model::query();
-        if (App::environment('testing')) {
+
+        $canIgnoreScopes = false;
+        $withoutScopes = Request::header('X-Ignore-Scopes');
+        if (!empty($withoutScopes)) {
+            $permissions = $model::getBatchingGlobalAccessPermissions();
+            $canIgnoreScopes = Gate::any($permissions);
+        }
+        if (!$canIgnoreScopes) {
             $query->withoutGlobalScopes();
         }
         $requestData = Request::all();
