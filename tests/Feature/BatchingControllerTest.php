@@ -80,6 +80,9 @@ it('should work correctly :dataset sorting', function (array $parameters, array 
     $gateSpy = Gate::spy();
     $gateSpy->shouldReceive('any')->andReturnFalse();
 
+    $schemaSpy = Schema::spy();
+    $schemaSpy->shouldReceive('getColumnListing')->andReturn(['id']);
+
     $pdoMock = Mockery::mock(PDO::class);
 
     $connectionMock = Mockery::mock(Connection::class)->makePartial();
