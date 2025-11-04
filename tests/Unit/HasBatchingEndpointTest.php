@@ -38,3 +38,36 @@ it('should returns :dataset middlewares', function (object $class, array $expect
 
     expect($middlewares)->toBe($expectedMiddlewares);
 })->with('datasetMiddlewares');
+
+dataset('datasetGlobalAccessPermissions', [
+    'default' => [
+        new class {
+            use HasBatchingEndpoint;
+        },
+        ['admin'],
+    ],
+    'no' => [
+        new class {
+            use HasBatchingEndpoint;
+
+            protected static $globalAccessPermissions = [];
+        },
+        [],
+    ],
+    'custom' => [
+        new class {
+            use HasBatchingEndpoint;
+
+            protected static $globalAccessPermissions = ['user', 'editor'];
+        },
+        ['user', 'editor'],
+    ],
+]);
+
+it('should returns :dataset global access permissions', function (object $class, array $expectedPermissions) {
+    $method = (new ReflectionClass($class))->getMethod('getBatchingGlobalAccessPermissions');
+    $method->setAccessible(true);
+    $permissions = $method->invoke(null);
+
+    expect($permissions)->toBe($expectedPermissions);
+})->with('datasetGlobalAccessPermissions');
