@@ -74,19 +74,20 @@ class Batching
             $query->orderBy($order, $direction);
         }
 
-        $canIgnoreScopes = false;
-        $withoutScopes = Request::header('X-Ignore-Scopes');
-        if (!empty($withoutScopes)) {
+        $shouldIgnoreScope = Request::header('X-Ignore-Scopes');
+        if (!empty($shouldIgnoreScope)) {
             $permissions = $model::getBatchingGlobalAccessPermissions();
-            $canIgnoreScopes = $permissions->some(function (string $permission): bool {
+
+            $hasPermissionToIgnoreScopes = $permissions->some(function (string $permission): bool {
                 Auth::shouldUse($permission);
                 $allowed = Gate::allows($permission);
 
                 return $allowed;
             });
-        }
-        if ($canIgnoreScopes) {
-            $query->withoutGlobalScopes();
+
+            if ($hasPermissionToIgnoreScopes) {
+                $query->withoutGlobalScopes();
+            }
         }
 
         foreach ($requestData as $key => $value) {
