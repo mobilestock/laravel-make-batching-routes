@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
  * @property array<class-string> $middlewares
+ * @property array<string> $globalAccessPermissions
  */
 trait HasBatchingEndpoint
 {
@@ -17,5 +18,12 @@ trait HasBatchingEndpoint
         $middlewares = static::$middlewares ?? [Authenticate::class];
 
         return $middlewares;
+    }
+
+    protected static function getBatchingGlobalAccessPermissions(): array
+    {
+        $permissions = static::$globalAccessPermissions ?? ['admin'];
+
+        return $permissions;
     }
 }
