@@ -80,6 +80,17 @@ it('should work correctly :dataset sorting', function (array $parameters, array 
     $gateSpy = Gate::spy();
     $gateSpy->shouldReceive('any')->andReturnFalse();
 
+    $pdoMock = Mockery::mock(PDO::class);
+
+    $connectionMock = Mockery::mock(Connection::class)->makePartial();
+    $connectionMock->__construct($pdoMock);
+    $connectionMock->shouldReceive('select')->andReturn([['id' => 3], ['id' => 1], ['id' => 2]]);
+
+    $resolverMock = Mockery::mock(DatabaseManager::class);
+    $resolverMock->shouldReceive('connection')->andReturn($connectionMock);
+
+    Model::setConnectionResolver($resolverMock);
+
     File::put(
         "$MODEL_PATH/Table.php",
         <<<PHP
@@ -94,17 +105,6 @@ class Table extends \Illuminate\Database\Eloquent\Model {
 }
 PHP
     );
-
-    $pdoMock = Mockery::mock(PDO::class);
-
-    $connectionMock = Mockery::mock(Connection::class)->makePartial();
-    $connectionMock->__construct($pdoMock);
-    $connectionMock->shouldReceive('select')->andReturn([['id' => 3], ['id' => 1], ['id' => 2]]);
-
-    $resolverMock = Mockery::mock(DatabaseManager::class);
-    $resolverMock->shouldReceive('connection')->andReturn($connectionMock);
-
-    Model::setConnectionResolver($resolverMock);
 
     $controller = new Batching();
     $response = $controller->find();
