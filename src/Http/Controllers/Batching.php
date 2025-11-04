@@ -50,16 +50,14 @@ class Batching
             throw new RuntimeException("Model não encontrada pra tabela: $routeResource");
         }
 
-        $requestData = Request::except(['limit', 'page', 'order_by_field', 'order_by_direction', 'without_scopes']);
+        $requestData = Request::except(['limit', 'page', 'order_by_field', 'order_by_direction']);
         $configs = Request::validate([
             'limit' => ['nullable', 'integer', 'min:0', 'max:1000'],
             'page' => ['nullable', 'integer', 'min:1'],
             'order_by_field' => ['nullable', 'string'],
             'order_by_direction' => ['nullable', Rule::enum(\MobileStock\MakeBatchingRoutes\Enum\OrderByEnum::class)],
-            'without_scopes' => ['nullable', 'boolean'],
         ]);
 
-        $configs['without_scopes'] ??= false;
         $limit = $configs['limit'] ?? 1000;
         $page = $configs['page'] ?? 1;
         $offset = $limit * ($page - 1);
@@ -74,7 +72,9 @@ class Batching
 
             $query->orderBy($order, $direction);
         }
-        if ($configs['without_scopes']) {
+
+        $withoutScopes = Request::header('X-Ignore-Scopes', false);
+        if ($withoutScopes) {
             $permissions = $model::getBatchingGlobalAccessPermissions();
             $canIgnore = Gate::any($permissions);
             if (!$canIgnore) {
