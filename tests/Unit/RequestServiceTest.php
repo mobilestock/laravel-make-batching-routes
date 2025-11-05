@@ -8,21 +8,21 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Gate;
 use MobileStock\MakeBatchingRoutes\Services\RequestService;
 
-$MODEL_PATH = __DIR__ . '/../Temp/Models';
+const MODEL_PATH = __DIR__ . '/../Temp/Models';
 
-beforeEach(function () use ($MODEL_PATH) {
-    File::ensureDirectoryExists($MODEL_PATH);
+beforeEach(function () {
+    File::ensureDirectoryExists(MODEL_PATH);
 });
 
 dataset('findModelsFailCaseProvider', [
-    'file to default' => ["$MODEL_PATH/FileNotFound.txt", '', 'find'],
+    'file to default' => [MODEL_PATH . '/FileNotFound.txt', '', 'find'],
     'class to default' => [
-        "$MODEL_PATH/ClassNotFound.php",
+        MODEL_PATH . '/ClassNotFound.php',
         '<?php namespace Fake\Models; class ClassNotFound {}',
         'find',
     ],
     'table to default' => [
-        "$MODEL_PATH/TableNotFound.php",
+        MODEL_PATH . '/TableNotFound.php',
         '<?php namespace Tests\Temp\Models; class TableNotFound extends \Illuminate\Database\Eloquent\Model {}',
         'find',
     ],
@@ -41,9 +41,9 @@ it('should throws exception if no :dataset is found', function (string $filePath
     ->with('findModelsFailCaseProvider')
     ->throws(RuntimeException::class, 'Model não encontrada pra tabela: /');
 
-it('should return the correct model based on the request uri', function () use ($MODEL_PATH) {
+it('should return the correct model based on the request uri', function () {
     File::put(
-        "$MODEL_PATH/CorrectTable.php",
+        MODEL_PATH . '/CorrectTable.php',
         <<<PHP
 <?php
 
