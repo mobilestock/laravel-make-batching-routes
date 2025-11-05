@@ -14,7 +14,7 @@ use RuntimeException;
 
 class RequestService
 {
-    public static function getRouteModel(bool $isGrouped): Model
+    public function getRouteModel(bool $isGrouped): Model
     {
         $uriPath = Request::path();
         $prefix = 'api/batching/' . ($isGrouped ? 'grouped/' : '');
@@ -52,7 +52,7 @@ class RequestService
         return $model;
     }
 
-    public static function shouldIgnoreModelScopes(Model $model): bool
+    public function shouldIgnoreModelScopes(Model $model): bool
     {
         $shouldIgnoreScope = Request::header('X-Ignore-Scopes');
         if (empty($shouldIgnoreScope)) {
