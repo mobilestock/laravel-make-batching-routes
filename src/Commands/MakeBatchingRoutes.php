@@ -379,7 +379,7 @@ it('should retrieves all values from {$table['name']} without controller sorting
     Gate::shouldReceive('allows')->andReturnTrue();
 
     \$controller = new Batching();
-    \$response = \$controller->find();
+    \$response = \$controller->find(new RequestService());
 $spatialConverter
     \$expected = \$values->sortBy('$primaryColumn')->values()->toArray();
     expect(\$response)->toBe(\$expected);
@@ -398,6 +398,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Schema;
 use MobileStock\MakeBatchingRoutes\Http\Controllers\Batching;
+use MobileStock\MakeBatchingRoutes\Services\RequestService;
 
 uses(RefreshDatabase::class);
 
