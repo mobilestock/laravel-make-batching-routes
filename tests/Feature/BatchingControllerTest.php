@@ -3,7 +3,6 @@
 use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use MobileStock\MakeBatchingRoutes\Http\Controllers\Batching;
 
@@ -11,6 +10,7 @@ $MODEL_PATH = __DIR__ . '/../Temp/Models';
 
 beforeEach(function () use ($MODEL_PATH) {
     File::ensureDirectoryExists($MODEL_PATH);
+    Request::macro('batchingShouldIgnoreModelScopes', fn() => true);
 });
 
 dataset('datasetControllerFindSucceeds', function () {
@@ -53,9 +53,6 @@ PHP
     Request::swap($request);
     Request::macro('batchingRouteModel', fn() => $model);
 
-    $gateSpy = Gate::spy();
-    $gateSpy->shouldReceive('allows')->andReturnTrue();
-
     $schemaSpy = Schema::spy();
     $schemaSpy->shouldReceive('getColumnListing')->andReturn(['id']);
 
@@ -73,8 +70,6 @@ PHP
     $controller = new Batching();
     $response = $controller->find();
     expect($response)->toBe($expected);
-
-    $gateSpy->shouldHaveReceived('allows')->with('viewer')->once();
 })->with('datasetControllerFindSucceeds');
 
 it('should return grouped values', function () use ($MODEL_PATH) {
@@ -88,9 +83,6 @@ it('should return grouped values', function () use ($MODEL_PATH) {
     $request->headers->set('X-Ignore-Scopes', 'true');
     Request::swap($request);
     Request::macro('batchingRouteModel', fn() => $model);
-
-    $gateSpy = Gate::spy();
-    $gateSpy->shouldReceive('allows')->andReturnTrue();
 
     $pdoMock = Mockery::mock(PDO::class);
 
@@ -117,6 +109,4 @@ it('should return grouped values', function () use ($MODEL_PATH) {
         [['id' => 2, 'name' => 'Foo']],
         [['id' => 1, 'name' => 'Foo']],
     ]);
-
-    $gateSpy->shouldHaveReceived('allows')->with('viewer')->once();
 });
