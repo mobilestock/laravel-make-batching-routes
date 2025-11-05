@@ -37,3 +37,34 @@ it('should throws exception if no :dataset is found', function (string $filePath
 })
     ->with('datasetControllerFindFails')
     ->throws(RuntimeException::class, 'Model não encontrada pra tabela: /');
+
+it('should return the correct model based on the request uri', function () use ($MODEL_PATH) {
+    File::put(
+        "$MODEL_PATH/CorrectTable.php",
+        <<<PHP
+<?php
+
+namespace Tests\Temp\Models;
+use Illuminate\Database\Eloquent\Model;
+
+class CorrectTable extends Model {
+    protected \$table = 'correct_tables';
+}
+PHP
+    );
+
+    $appSpy = App::spy()->makePartial();
+    $appSpy->shouldReceive('getNamespace')->andReturn('Tests\\Temp\\');
+    $appSpy->shouldReceive('path')->andReturn('/laravel-make-batching-routes/tests/Temp/Models');
+
+    $request = Request::create('api/batching/correct_tables');
+    Request::swap($request);
+
+    $model = RequestService::getRouteModel();
+
+    expect($model)->toBeInstanceOf('\Tests\Temp\Models\CorrectTable');
+
+    $appSpy->shouldHaveReceived('getNamespace')->twice();
+    $appSpy->shouldHaveReceived('path')->twice()->with('Models');
+    $appSpy->shouldHaveReceived('make')->with('\Tests\Temp\Models\CorrectTable')->once();
+});
