@@ -30,6 +30,12 @@ class Batching
         /**  @var \Illuminate\Database\Eloquent\Model $model*/
         $model = Request::batchingRouteModel();
         $query = $model::query()->limit($limit)->offset($offset);
+
+        $hasPermissionToIgnoreScopes = Request::batchingShouldIgnoreModelScopes($model);
+        if ($hasPermissionToIgnoreScopes) {
+            $query->withoutGlobalScopes();
+        }
+
         if (empty($requestData)) {
             $table = $model->getTable();
             $columns = Schema::getColumnListing($table);
@@ -37,22 +43,6 @@ class Batching
             $direction = $configs['order_by_direction'] ?? OrderByEnum::ASC->value;
 
             $query->orderBy($order, $direction);
-        }
-
-        $shouldIgnoreScope = Request::header('X-Ignore-Scopes');
-        if (!empty($shouldIgnoreScope)) {
-            $permissions = $model::getBatchingGlobalAccessPermissions();
-
-            $hasPermissionToIgnoreScopes = $permissions->some(function (string $permission): bool {
-                Auth::shouldUse($permission);
-                $allowed = Gate::allows($permission);
-
-                return $allowed;
-            });
-
-            if ($hasPermissionToIgnoreScopes) {
-                $query->withoutGlobalScopes();
-            }
         }
 
         foreach ($requestData as $key => $value) {
@@ -82,20 +72,9 @@ class Batching
         $model = Request::batchingRouteModel();
         $query = $model::query();
 
-        $shouldIgnoreScope = Request::header('X-Ignore-Scopes');
-        if (!empty($shouldIgnoreScope)) {
-            $permissions = $model::getBatchingGlobalAccessPermissions();
-
-            $hasPermissionToIgnoreScopes = $permissions->some(function (string $permission): bool {
-                Auth::shouldUse($permission);
-                $allowed = Gate::allows($permission);
-
-                return $allowed;
-            });
-
-            if ($hasPermissionToIgnoreScopes) {
-                $query->withoutGlobalScopes();
-            }
+        $hasPermissionToIgnoreScopes = Request::batchingShouldIgnoreModelScopes($model);
+        if ($hasPermissionToIgnoreScopes) {
+            $query->withoutGlobalScopes();
         }
 
         $requestData = Request::all();

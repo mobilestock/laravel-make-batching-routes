@@ -31,5 +31,6 @@ class MakeBatchingRoutesServiceProvider extends ServiceProvider
         $this->commands([MakeBatchingRoutes::class]);
 
         Request::macro('batchingRouteModel', [RequestService::class, 'getRouteModel']);
+        Request::macro('batchingShouldIgnoreModelScopes', [RequestService::class, 'shouldIgnoreModelScopes']);
     }
 }

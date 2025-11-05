@@ -4,6 +4,8 @@ namespace MobileStock\MakeBatchingRoutes\Services;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Request;
 use MobileStock\MakeBatchingRoutes\Utils\ClassNameSanitize;
 use RecursiveDirectoryIterator;
@@ -47,5 +49,24 @@ class RequestService
         }
 
         return $model;
+    }
+
+    public static function shouldIgnoreModelScopes(Model $model): bool
+    {
+        $shouldIgnoreScope = Request::header('X-Ignore-Scopes');
+        if (empty($shouldIgnoreScope)) {
+            return false;
+        }
+
+        $permissions = $model::getBatchingGlobalAccessPermissions();
+
+        $hasPermissionToIgnoreScopes = $permissions->some(function (string $permission): bool {
+            Auth::shouldUse($permission);
+            $allowed = Gate::allows($permission);
+
+            return $allowed;
+        });
+
+        return $hasPermissionToIgnoreScopes;
     }
 }
