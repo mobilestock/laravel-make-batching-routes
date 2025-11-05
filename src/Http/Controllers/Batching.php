@@ -10,7 +10,6 @@ use MobileStock\MakeBatchingRoutes\Enum\OrderByEnum;
 
 class Batching
 {
-    // @issue: https://github.com/mobilestock/backend/issues/1294
     public function find()
     {
         $requestData = Request::except(['limit', 'page', 'order_by_field', 'order_by_direction']);
@@ -63,7 +62,6 @@ class Batching
         return $databaseValues;
     }
 
-    // @issue: https://github.com/mobilestock/backend/issues/1294
     public function findGrouped()
     {
         /**  @var \Illuminate\Database\Eloquent\Model $model*/
