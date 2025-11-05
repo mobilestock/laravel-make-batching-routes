@@ -15,7 +15,6 @@ class Batching
     // @issue: https://github.com/mobilestock/backend/issues/1294
     public function find()
     {
-        $model = Request::batchingRouteModel();
         $requestData = Request::except(['limit', 'page', 'order_by_field', 'order_by_direction']);
         $configs = Request::validate([
             'limit' => ['nullable', 'integer', 'min:0', 'max:1000'],
@@ -29,6 +28,7 @@ class Batching
         $offset = $limit * ($page - 1);
 
         /**  @var \Illuminate\Database\Eloquent\Model $model*/
+        $model = Request::batchingRouteModel();
         $query = $model::query()->limit($limit)->offset($offset);
         if (empty($requestData)) {
             $table = $model->getTable();
@@ -78,6 +78,7 @@ class Batching
     // @issue: https://github.com/mobilestock/backend/issues/1294
     public function findGrouped()
     {
+        /**  @var \Illuminate\Database\Eloquent\Model $model*/
         $model = Request::batchingRouteModel();
         $query = $model::query();
 
