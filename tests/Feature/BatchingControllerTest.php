@@ -5,12 +5,12 @@ use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Schema;
 use MobileStock\MakeBatchingRoutes\Http\Controllers\Batching;
+use MobileStock\MakeBatchingRoutes\Services\RequestService;
 
-$MODEL_PATH = __DIR__ . '/../Temp/Models';
+const MODEL_PATH = __DIR__ . '/../Temp/Models';
 
-beforeEach(function () use ($MODEL_PATH) {
-    File::ensureDirectoryExists($MODEL_PATH);
-    Request::macro('batchingShouldIgnoreModelScopes', fn() => true);
+beforeEach(function () {
+    File::ensureDirectoryExists(MODEL_PATH);
 });
 
 dataset('datasetControllerFindSucceeds', function () {
@@ -26,17 +26,19 @@ dataset('datasetControllerFindSucceeds', function () {
     ];
 });
 
-it('should work correctly :dataset sorting', function (array $parameters, array $expected) use ($MODEL_PATH) {
+it('should work correctly :dataset sorting', function (array $parameters, array $expected) {
     File::put(
-        "$MODEL_PATH/Table.php",
+        MODEL_PATH . '/Table.php',
         '<?php namespace Tests\Temp\Models; class Table extends \Illuminate\Database\Eloquent\Model {}'
     );
 
-    $model = App::make('Tests\Temp\Models\Table');
-
     $request = Request::create('api/batching/tables', parameters: $parameters);
     Request::swap($request);
-    Request::macro('batchingRouteModel', fn() => $model);
+
+    $model = App::make('Tests\Temp\Models\Table');
+    $requestServiceSpy = Mockery::spy(RequestService::class);
+    $requestServiceSpy->shouldReceive('getRouteModel')->andReturn($model);
+    $requestServiceSpy->shouldReceive('shouldIgnoreModelScopes')->andReturnTrue();
 
     $schemaSpy = Schema::spy();
     $schemaSpy->shouldReceive('getColumnListing')->andReturn(['id']);
@@ -53,20 +55,27 @@ it('should work correctly :dataset sorting', function (array $parameters, array 
     Model::setConnectionResolver($resolverMock);
 
     $controller = new Batching();
-    $response = $controller->find();
+    $response = $controller->find($requestServiceSpy);
+
     expect($response)->toBe($expected);
+
+    $requestServiceSpy->shouldHaveReceived('getRouteModel')->once();
+    $requestServiceSpy->shouldHaveReceived('shouldIgnoreModelScopes')->once();
 })->with('datasetControllerFindSucceeds');
 
-it('should return grouped values', function () use ($MODEL_PATH) {
+it('should return grouped values', function () {
     File::put(
-        "$MODEL_PATH/Table.php",
+        MODEL_PATH . '/Table.php',
         '<?php namespace Tests\Temp\Models; class Table extends \Illuminate\Database\Eloquent\Model {}'
     );
 
-    $model = App::make('Tests\Temp\Models\Table');
     $request = Request::create('api/batching/grouped/tables', parameters: ['id' => [3, 2, 1]]);
     Request::swap($request);
-    Request::macro('batchingRouteModel', fn() => $model);
+
+    $model = App::make('Tests\Temp\Models\Table');
+    $requestServiceSpy = Mockery::spy(RequestService::class);
+    $requestServiceSpy->shouldReceive('getRouteModel')->andReturn($model);
+    $requestServiceSpy->shouldReceive('shouldIgnoreModelScopes')->andReturnTrue();
 
     $pdoMock = Mockery::mock(PDO::class);
 
@@ -87,10 +96,14 @@ it('should return grouped values', function () use ($MODEL_PATH) {
     Model::setConnectionResolver($resolverMock);
 
     $controller = new Batching();
-    $response = $controller->findGrouped();
+    $response = $controller->findGrouped($requestServiceSpy);
+
     expect($response)->toBe([
         [['id' => 3, 'name' => 'Foo'], ['id' => 3, 'name' => 'Bar']],
         [['id' => 2, 'name' => 'Foo']],
         [['id' => 1, 'name' => 'Foo']],
     ]);
+
+    $requestServiceSpy->shouldHaveReceived('getRouteModel')->once();
+    $requestServiceSpy->shouldHaveReceived('shouldIgnoreModelScopes')->once();
 });
