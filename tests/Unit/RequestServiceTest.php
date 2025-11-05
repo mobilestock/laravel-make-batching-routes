@@ -1,8 +1,11 @@
 <?php
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Gate;
 use MobileStock\MakeBatchingRoutes\Services\RequestService;
 
 $MODEL_PATH = __DIR__ . '/../Temp/Models';
@@ -77,4 +80,27 @@ it('should return false when no header is present', function () {
     expect($result)->toBeFalse();
 
     $modelSpy->shouldNotHaveReceived('getBatchingGlobalAccessPermissions');
+});
+
+it('should return true when header is present and user has permission', function () {
+    $permission = 'ignore-batching-scopes';
+
+    $modelSpy = Mockery::spy(Model::class);
+    $modelSpy->shouldReceive('getBatchingGlobalAccessPermissions')->andReturn(Collection::make([$permission]));
+
+    Auth::shouldReceive('shouldUse')->with($permission)->once();
+
+    $gateSpy = Gate::spy();
+    $gateSpy->shouldReceive('allows')->andReturnTrue();
+
+    $request = Request::create('api/batching/some_table');
+    $request->headers->set('X-Ignore-Scopes', 'true');
+    Request::swap($request);
+
+    $result = RequestService::shouldIgnoreModelScopes($modelSpy);
+
+    expect($result)->toBeTrue();
+
+    $modelSpy->shouldHaveReceived('getBatchingGlobalAccessPermissions')->once();
+    $gateSpy->shouldHaveReceived('allows')->with($permission)->once();
 });
