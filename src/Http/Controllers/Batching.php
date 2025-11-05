@@ -3,54 +3,19 @@
 namespace MobileStock\MakeBatchingRoutes\Http\Controllers;
 
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 use MobileStock\MakeBatchingRoutes\Enum\OrderByEnum;
-use MobileStock\MakeBatchingRoutes\Utils\ClassNameSanitize;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
-use RuntimeException;
 
 class Batching
 {
     // @issue: https://github.com/mobilestock/backend/issues/1294
     public function find()
     {
-        $uriPath = Request::path();
-        $routeResource = str_replace('api/batching/', '', $uriPath);
-
-        $namespace = App::getNamespace();
-        $namespace = rtrim($namespace, '\\');
-
-        $modelPath = App::path('Models');
-        $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($modelPath));
-        foreach ($files as $file) {
-            if ($file->isDir() || $file->getExtension() !== 'php') {
-                continue;
-            }
-
-            $class = ClassNameSanitize::sanitizeModel($file);
-            if (!class_exists($class)) {
-                continue;
-            }
-
-            $model = App::make($class);
-            $tableName = $model->getTable();
-            if ($tableName === $routeResource) {
-                break;
-            }
-
-            $model = null;
-        }
-
-        if (empty($model)) {
-            throw new RuntimeException("Model não encontrada pra tabela: $routeResource");
-        }
-
+        $model = Request::batchingRouteModel();
         $requestData = Request::except(['limit', 'page', 'order_by_field', 'order_by_direction']);
         $configs = Request::validate([
             'limit' => ['nullable', 'integer', 'min:0', 'max:1000'],
@@ -113,38 +78,7 @@ class Batching
     // @issue: https://github.com/mobilestock/backend/issues/1294
     public function findGrouped()
     {
-        $uriPath = Request::path();
-        $routeResource = str_replace('api/batching/grouped/', '', $uriPath);
-
-        $namespace = App::getNamespace();
-        $namespace = rtrim($namespace, '\\');
-
-        $modelPath = App::path('Models');
-        $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($modelPath));
-        foreach ($files as $file) {
-            if ($file->isDir() || $file->getExtension() !== 'php') {
-                continue;
-            }
-
-            $class = ClassNameSanitize::sanitizeModel($file);
-            if (!class_exists($class)) {
-                continue;
-            }
-
-            $model = App::make($class);
-            $tableName = $model->getTable();
-            if ($tableName === $routeResource) {
-                break;
-            }
-
-            $model = null;
-        }
-
-        if (empty($model)) {
-            throw new RuntimeException("Model não encontrada pra tabela: $routeResource");
-        }
-
-        /**  @var \Illuminate\Database\Eloquent\Model $model*/
+        $model = Request::batchingRouteModel();
         $query = $model::query();
 
         $shouldIgnoreScope = Request::header('X-Ignore-Scopes');
