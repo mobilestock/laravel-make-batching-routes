@@ -26,13 +26,11 @@ dataset('datasetControllerFindFails', function () use ($MODEL_PATH) {
     ];
 });
 
-it('should throws exception if no :dataset is found', function (string $filePath, string $fileContent, string $method) {
-    App::partialMock()
-        ->shouldReceive('getNamespace')
-        ->andReturn('Tests\\Temp\\')
-        ->shouldReceive('path')
-        ->with('Models')
-        ->andReturn('/laravel-make-batching-routes/tests/Temp/Models');
+it('should throws exception if no :dataset is found', function (string $filePath, string $fileContent) {
+    $appSpy = App::spy()->makePartial();
+    $appSpy->shouldReceive('getNamespace')->andReturn('Tests\\Temp\\');
+    $appSpy->shouldReceive('path')->andReturn('/laravel-make-batching-routes/tests/Temp/Models');
+
     File::put($filePath, $fileContent);
 
     RequestService::getRouteModel();
