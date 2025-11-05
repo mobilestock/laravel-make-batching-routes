@@ -35,7 +35,8 @@ it('should throws exception if no :dataset is found', function (string $filePath
 
     File::put($filePath, $fileContent);
 
-    RequestService::getRouteModel(false);
+    $service = new RequestService();
+    $service->getRouteModel(false);
 })
     ->with('findModelsFailCaseProvider')
     ->throws(RuntimeException::class, 'Model não encontrada pra tabela: /');
@@ -62,7 +63,8 @@ PHP
     $request = Request::create('api/batching/grouped/correct_tables');
     Request::swap($request);
 
-    $model = RequestService::getRouteModel(true);
+    $service = new RequestService();
+    $model = $service->getRouteModel(true);
 
     expect($model)->toBeInstanceOf('\Tests\Temp\Models\CorrectTable');
 
@@ -73,7 +75,9 @@ PHP
 
 it('should return false when no header is present', function () {
     $modelSpy = Mockery::spy(Model::class);
-    $result = RequestService::shouldIgnoreModelScopes($modelSpy);
+
+    $service = new RequestService();
+    $result = $service->shouldIgnoreModelScopes($modelSpy);
 
     expect($result)->toBeFalse();
 
@@ -95,7 +99,8 @@ it('should return true when header is present and user has permission', function
     $request->headers->set('X-Ignore-Scopes', 'true');
     Request::swap($request);
 
-    $result = RequestService::shouldIgnoreModelScopes($modelSpy);
+    $service = new RequestService();
+    $result = $service->shouldIgnoreModelScopes($modelSpy);
 
     expect($result)->toBeTrue();
 
