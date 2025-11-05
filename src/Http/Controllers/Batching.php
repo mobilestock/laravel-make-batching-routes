@@ -7,10 +7,11 @@ use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 use MobileStock\MakeBatchingRoutes\Enum\OrderByEnum;
+use MobileStock\MakeBatchingRoutes\Services\RequestService;
 
 class Batching
 {
-    public function find()
+    public function find(RequestService $service)
     {
         $requestData = Request::except(['limit', 'page', 'order_by_field', 'order_by_direction']);
         $configs = Request::validate([
@@ -25,10 +26,10 @@ class Batching
         $offset = $limit * ($page - 1);
 
         /**  @var \Illuminate\Database\Eloquent\Model $model*/
-        $model = Request::batchingRouteModel(false);
+        $model = $service->getRouteModel(false);
         $query = $model::query()->limit($limit)->offset($offset);
 
-        $hasPermissionToIgnoreScopes = Request::batchingShouldIgnoreModelScopes($model);
+        $hasPermissionToIgnoreScopes = $service->shouldIgnoreModelScopes($model);
         if ($hasPermissionToIgnoreScopes) {
             $query->withoutGlobalScopes();
         }
@@ -62,13 +63,13 @@ class Batching
         return $databaseValues;
     }
 
-    public function findGrouped()
+    public function findGrouped(RequestService $service)
     {
         /**  @var \Illuminate\Database\Eloquent\Model $model*/
-        $model = Request::batchingRouteModel(true);
+        $model = $service->getRouteModel(true);
         $query = $model::query();
 
-        $hasPermissionToIgnoreScopes = Request::batchingShouldIgnoreModelScopes($model);
+        $hasPermissionToIgnoreScopes = $service->shouldIgnoreModelScopes($model);
         if ($hasPermissionToIgnoreScopes) {
             $query->withoutGlobalScopes();
         }
