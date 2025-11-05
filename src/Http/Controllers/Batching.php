@@ -25,7 +25,7 @@ class Batching
         $offset = $limit * ($page - 1);
 
         /**  @var \Illuminate\Database\Eloquent\Model $model*/
-        $model = Request::batchingRouteModel();
+        $model = Request::batchingRouteModel(false);
         $query = $model::query()->limit($limit)->offset($offset);
 
         $hasPermissionToIgnoreScopes = Request::batchingShouldIgnoreModelScopes($model);
@@ -65,7 +65,7 @@ class Batching
     public function findGrouped()
     {
         /**  @var \Illuminate\Database\Eloquent\Model $model*/
-        $model = Request::batchingRouteModel();
+        $model = Request::batchingRouteModel(true);
         $query = $model::query();
 
         $hasPermissionToIgnoreScopes = Request::batchingShouldIgnoreModelScopes($model);

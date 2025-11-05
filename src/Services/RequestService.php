@@ -14,10 +14,11 @@ use RuntimeException;
 
 class RequestService
 {
-    public static function getRouteModel(): Model
+    public static function getRouteModel(bool $isGrouped): Model
     {
         $uriPath = Request::path();
-        $routeResource = str_replace('api/batching/', '', $uriPath);
+        $prefix = 'api/batching/' . ($isGrouped ? 'grouped/' : '');
+        $routeResource = str_replace($prefix, '', $uriPath);
 
         $namespace = App::getNamespace();
         $namespace = rtrim($namespace, '\\');

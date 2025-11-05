@@ -37,7 +37,7 @@ it('should throws exception if no :dataset is found', function (string $filePath
 
     File::put($filePath, $fileContent);
 
-    RequestService::getRouteModel();
+    RequestService::getRouteModel(false);
 })
     ->with('datasetControllerFindFails')
     ->throws(RuntimeException::class, 'Model não encontrada pra tabela: /');
@@ -61,10 +61,10 @@ PHP
     $appSpy->shouldReceive('getNamespace')->andReturn('Tests\\Temp\\');
     $appSpy->shouldReceive('path')->andReturn('/laravel-make-batching-routes/tests/Temp/Models');
 
-    $request = Request::create('api/batching/correct_tables');
+    $request = Request::create('api/batching/grouped/correct_tables');
     Request::swap($request);
 
-    $model = RequestService::getRouteModel();
+    $model = RequestService::getRouteModel(true);
 
     expect($model)->toBeInstanceOf('\Tests\Temp\Models\CorrectTable');
 
