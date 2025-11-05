@@ -14,21 +14,19 @@ beforeEach(function () use ($MODEL_PATH) {
     File::ensureDirectoryExists($MODEL_PATH);
 });
 
-dataset('datasetControllerFindFails', function () use ($MODEL_PATH) {
-    return [
-        'file to default' => ["$MODEL_PATH/FileNotFound.txt", '', 'find'],
-        'class to default' => [
-            "$MODEL_PATH/ClassNotFound.php",
-            '<?php namespace Fake\Models; class ClassNotFound {}',
-            'find',
-        ],
-        'table to default' => [
-            "$MODEL_PATH/TableNotFound.php",
-            '<?php namespace Tests\Temp\Models; class TableNotFound extends \Illuminate\Database\Eloquent\Model {}',
-            'find',
-        ],
-    ];
-});
+dataset('findModelsFailCaseProvider', [
+    'file to default' => ["$MODEL_PATH/FileNotFound.txt", '', 'find'],
+    'class to default' => [
+        "$MODEL_PATH/ClassNotFound.php",
+        '<?php namespace Fake\Models; class ClassNotFound {}',
+        'find',
+    ],
+    'table to default' => [
+        "$MODEL_PATH/TableNotFound.php",
+        '<?php namespace Tests\Temp\Models; class TableNotFound extends \Illuminate\Database\Eloquent\Model {}',
+        'find',
+    ],
+]);
 
 it('should throws exception if no :dataset is found', function (string $filePath, string $fileContent) {
     $appSpy = App::spy()->makePartial();
@@ -39,7 +37,7 @@ it('should throws exception if no :dataset is found', function (string $filePath
 
     RequestService::getRouteModel(false);
 })
-    ->with('datasetControllerFindFails')
+    ->with('findModelsFailCaseProvider')
     ->throws(RuntimeException::class, 'Model não encontrada pra tabela: /');
 
 it('should return the correct model based on the request uri', function () use ($MODEL_PATH) {

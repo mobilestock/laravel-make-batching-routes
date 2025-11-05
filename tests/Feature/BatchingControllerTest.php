@@ -29,27 +29,12 @@ dataset('datasetControllerFindSucceeds', function () {
 it('should work correctly :dataset sorting', function (array $parameters, array $expected) use ($MODEL_PATH) {
     File::put(
         "$MODEL_PATH/Table.php",
-        <<<PHP
-<?php
-
-namespace Tests\Temp\Models;
-
-use Illuminate\Database\Eloquent\Collection;
-
-class Table extends \Illuminate\Database\Eloquent\Model {
-
-    /** @return Collection<string> */
-    protected static function getBatchingGlobalAccessPermissions(): Collection {
-        return Collection::make(['viewer']);
-    }
-}
-PHP
+        '<?php namespace Tests\Temp\Models; class Table extends \Illuminate\Database\Eloquent\Model {}'
     );
 
     $model = App::make('Tests\Temp\Models\Table');
 
     $request = Request::create('api/batching/tables', parameters: $parameters);
-    $request->headers->set('X-Ignore-Scopes', 'true');
     Request::swap($request);
     Request::macro('batchingRouteModel', fn() => $model);
 
@@ -80,7 +65,6 @@ it('should return grouped values', function () use ($MODEL_PATH) {
 
     $model = App::make('Tests\Temp\Models\Table');
     $request = Request::create('api/batching/grouped/tables', parameters: ['id' => [3, 2, 1]]);
-    $request->headers->set('X-Ignore-Scopes', 'true');
     Request::swap($request);
     Request::macro('batchingRouteModel', fn() => $model);
 
