@@ -3,8 +3,6 @@
 namespace MobileStock\MakeBatchingRoutes\Http\Controllers;
 
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
