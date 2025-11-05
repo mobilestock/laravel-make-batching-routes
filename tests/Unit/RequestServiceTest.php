@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\File;
 use MobileStock\MakeBatchingRoutes\Services\RequestService;
@@ -67,4 +68,13 @@ PHP
     $appSpy->shouldHaveReceived('getNamespace')->twice();
     $appSpy->shouldHaveReceived('path')->twice()->with('Models');
     $appSpy->shouldHaveReceived('make')->with('\Tests\Temp\Models\CorrectTable')->once();
+});
+
+it('should return false when no header is present', function () {
+    $modelSpy = Mockery::spy(Model::class);
+    $result = RequestService::shouldIgnoreModelScopes($modelSpy);
+
+    expect($result)->toBeFalse();
+
+    $modelSpy->shouldNotHaveReceived('getBatchingGlobalAccessPermissions');
 });
