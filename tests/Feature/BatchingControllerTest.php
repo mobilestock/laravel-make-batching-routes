@@ -61,6 +61,8 @@ it('should work correctly :dataset sorting', function (array $parameters, array 
 
     $requestServiceSpy->shouldHaveReceived('getRouteModel')->once();
     $requestServiceSpy->shouldHaveReceived('shouldIgnoreModelScopes')->once();
+
+    $schemaSpy->shouldHaveReceived('getColumnListing')->once();
 })->with('datasetControllerFindSucceeds');
 
 it('should return grouped values', function () {
