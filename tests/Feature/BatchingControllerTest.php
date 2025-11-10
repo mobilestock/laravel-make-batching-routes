@@ -66,6 +66,30 @@ it('should work correctly :dataset sorting', function (array $parameters, array 
     $schemaSpy->shouldHaveReceived('getColumnListing')->once();
 })->with('datasetControllerFindSucceeds');
 
+it('should throw exception for invalid order_by_field', function () {
+    File::put(
+        MODEL_PATH . '/Table.php',
+        '<?php namespace Tests\Temp\Models; class Table extends \Illuminate\Database\Eloquent\Model {}'
+    );
+
+    $request = Request::create('api/batching/tables', parameters: ['order_by_field' => 'invalid_field']);
+    Request::swap($request);
+
+    $model = App::make('Tests\Temp\Models\Table');
+    $requestServiceSpy = Mockery::spy(RequestService::class);
+    $requestServiceSpy->shouldReceive('getRouteModel')->andReturn($model);
+    $requestServiceSpy->shouldReceive('shouldIgnoreModelScopes')->andReturnTrue();
+
+    $schemaSpy = Schema::spy();
+    $schemaSpy->shouldReceive('getColumnListing')->andReturn(['id', 'name']);
+
+    $controller = new Batching();
+    $controller->find($requestServiceSpy);
+})->throws(
+    InvalidArgumentException::class,
+    "The order_by_field 'invalid_field' is not a valid column in the 'tables' table."
+);
+
 it('should throw exception for empty values', function () {
     File::put(
         MODEL_PATH . '/Table.php',
