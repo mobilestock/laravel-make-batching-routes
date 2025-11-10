@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Schema;
 use MobileStock\MakeBatchingRoutes\Http\Controllers\Batching;
 use MobileStock\MakeBatchingRoutes\Services\RequestService;
+use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 const MODEL_PATH = __DIR__ . '/../Temp/Models';
 
