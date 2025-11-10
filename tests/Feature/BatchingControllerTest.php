@@ -63,7 +63,7 @@ it('should work correctly :dataset sorting', function (array $parameters, array 
     $requestServiceSpy->shouldHaveReceived('getRouteModel')->once();
     $requestServiceSpy->shouldHaveReceived('shouldIgnoreModelScopes')->once();
 
-    $schemaSpy->shouldHaveReceived('getColumnListing')->once();
+    $schemaSpy->shouldHaveReceived('getColumnListing')->with('tables')->once();
 })->with('datasetControllerFindSucceeds');
 
 it('should throw exception for invalid order_by_field', function () {
