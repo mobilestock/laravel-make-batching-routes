@@ -65,6 +65,30 @@ it('should work correctly :dataset sorting', function (array $parameters, array 
     $schemaSpy->shouldHaveReceived('getColumnListing')->once();
 })->with('datasetControllerFindSucceeds');
 
+it('should throw exception for empty values', function () {
+    File::put(
+        MODEL_PATH . '/Table.php',
+        '<?php namespace Tests\Temp\Models; class Table extends \Illuminate\Database\Eloquent\Model {}'
+    );
+
+    $request = Request::create('api/batching/tables', parameters: ['id' => []]);
+    Request::swap($request);
+
+    $model = App::make('Tests\Temp\Models\Table');
+    $requestServiceSpy = Mockery::spy(RequestService::class);
+    $requestServiceSpy->shouldReceive('getRouteModel')->andReturn($model);
+    $requestServiceSpy->shouldReceive('shouldIgnoreModelScopes')->andReturnTrue();
+
+    $schemaSpy = Schema::spy();
+    $schemaSpy->shouldReceive('getColumnListing')->andReturn(['id']);
+
+    $controller = new Batching();
+    $controller->find($requestServiceSpy);
+})->throws(
+    \Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException::class,
+    "The values for the order_by_field 'id' cannot be empty."
+);
+
 it('should return grouped values', function () {
     File::put(
         MODEL_PATH . '/Table.php',
