@@ -39,7 +39,7 @@ class Batching
         $table = $model->getTable();
         $columns = Schema::getColumnListing($table);
         $orderKey = $configs['order_by_field'] ?? (array_key_first($requestData) ?? current($columns));
-        if (!in_array($orderKey, $columns, true)) {
+        if (!in_array($orderKey, $columns)) {
             throw new InvalidArgumentException(
                 "O campo order_by_field '$orderKey' não é uma coluna válida na tabela '$table'."
             );
