@@ -6,8 +6,10 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
+use InvalidArgumentException;
 use MobileStock\MakeBatchingRoutes\Enum\OrderByEnum;
 use MobileStock\MakeBatchingRoutes\Services\RequestService;
+use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 class Batching
 {
@@ -34,20 +36,30 @@ class Batching
             $query->withoutGlobalScopes();
         }
 
+        $table = $model->getTable();
+        $columns = Schema::getColumnListing($table);
+        $orderKey = $configs['order_by_field'] ?? (array_key_first($requestData) ?? current($columns));
+        if (!in_array($orderKey, $columns, true)) {
+            throw new InvalidArgumentException(
+                "The order_by_field '{$orderKey}' is not a valid column in the '{$table}' table."
+            );
+        }
+
         if (empty($requestData)) {
-            $table = $model->getTable();
-            $columns = Schema::getColumnListing($table);
-            $order = $configs['order_by_field'] ?? current($columns);
             $direction = $configs['order_by_direction'] ?? OrderByEnum::ASC->value;
 
-            $query->orderBy($order, $direction);
+            $query->orderBy($orderKey, $direction);
         } else {
-            $order = $configs['order_by_field'] ?? array_key_first($requestData);
-            $values = $requestData[$order];
+            $values = array_values($requestData[$orderKey]);
+            if (empty($values)) {
+                throw new UnprocessableEntityHttpException(
+                    "The values for the order_by_field '{$orderKey}' cannot be empty."
+                );
+            }
 
             $sqlBindings = array_map(fn($index) => "WHEN ? THEN {$index}", array_keys($values));
             $sqlBindings = implode(' ', $sqlBindings);
-            $sql = "CASE $order $sqlBindings END";
+            $sql = "CASE $orderKey $sqlBindings END";
 
             $query->orderByRaw($sql, $values);
         }
