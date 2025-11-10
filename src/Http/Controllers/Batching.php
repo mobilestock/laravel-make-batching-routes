@@ -41,6 +41,14 @@ class Batching
             $direction = $configs['order_by_direction'] ?? OrderByEnum::ASC->value;
 
             $query->orderBy($order, $direction);
+        } else {
+            $order = $configs['order_by_field'] ?? array_key_first($requestData);
+            $values = $requestData[$order];
+            $sqlBindings = array_map(fn($index) => "WHEN ? THEN {$index}", array_keys($values));
+            $sqlBindings = implode(' ', $sqlBindings);
+            $sql = "CASE $order $sqlBindings END";
+
+            $query->orderByRaw($sql, $values);
         }
 
         foreach ($requestData as $key => $value) {
@@ -48,17 +56,6 @@ class Batching
         }
 
         $databaseValues = $query->get()->toArray();
-        if (empty($requestData) || empty($configs['order_by_field'])) {
-            return $databaseValues;
-        }
-
-        $key = $configs['order_by_field'];
-        $sorter = $requestData[$key];
-        usort($databaseValues, function (array $a, array $b) use ($key, $sorter): int {
-            $indexA = array_search($a[$key], $sorter);
-            $indexB = array_search($b[$key], $sorter);
-            return $indexA <=> $indexB;
-        });
 
         return $databaseValues;
     }
