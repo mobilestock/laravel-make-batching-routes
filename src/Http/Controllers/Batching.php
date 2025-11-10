@@ -44,6 +44,7 @@ class Batching
         } else {
             $order = $configs['order_by_field'] ?? array_key_first($requestData);
             $values = $requestData[$order];
+
             $sqlBindings = array_map(fn($index) => "WHEN ? THEN {$index}", array_keys($values));
             $sqlBindings = implode(' ', $sqlBindings);
             $sql = "CASE $order $sqlBindings END";
