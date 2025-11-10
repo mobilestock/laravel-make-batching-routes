@@ -50,7 +50,7 @@ class Batching
 
             $query->orderBy($orderKey, $direction);
         } else {
-            $values = array_values($requestData[$orderKey]);
+            $values = array_values($requestData[$orderKey] ?? []);
             if (empty($values)) {
                 throw new UnprocessableEntityHttpException(
                     "Os valores para o campo order_by_field '$orderKey' não podem estar vazios."
