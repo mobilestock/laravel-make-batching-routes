@@ -47,7 +47,7 @@ it('should work correctly :dataset sorting', function (array $parameters, array 
 
     $connectionMock = Mockery::mock(Connection::class)->makePartial();
     $connectionMock->__construct($pdoMock);
-    $connectionMock->shouldReceive('select')->andReturn([['id' => 3], ['id' => 1], ['id' => 2]]);
+    $connectionMock->shouldReceive('select')->andReturn($expected);
 
     $resolverMock = Mockery::mock(DatabaseManager::class);
     $resolverMock->shouldReceive('connection')->andReturn($connectionMock);
