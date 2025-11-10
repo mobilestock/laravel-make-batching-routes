@@ -87,7 +87,7 @@ it('should throw exception for invalid order_by_field', function () {
     $controller->find($requestServiceSpy);
 })->throws(
     InvalidArgumentException::class,
-    "The order_by_field 'invalid_field' is not a valid column in the 'tables' table."
+    "O campo order_by_field 'invalid_field' não é uma coluna válida na tabela 'tables'."
 );
 
 it('should throw exception for empty values', function () {
@@ -109,7 +109,10 @@ it('should throw exception for empty values', function () {
 
     $controller = new Batching();
     $controller->find($requestServiceSpy);
-})->throws(UnprocessableEntityHttpException::class, "The values for the order_by_field 'id' cannot be empty.");
+})->throws(
+    UnprocessableEntityHttpException::class,
+    "Os valores para o campo order_by_field 'id' não podem estar vazios."
+);
 
 it('should return grouped values', function () {
     File::put(

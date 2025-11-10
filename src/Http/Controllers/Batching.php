@@ -41,7 +41,7 @@ class Batching
         $orderKey = $configs['order_by_field'] ?? (array_key_first($requestData) ?? current($columns));
         if (!in_array($orderKey, $columns, true)) {
             throw new InvalidArgumentException(
-                "The order_by_field '{$orderKey}' is not a valid column in the '{$table}' table."
+                "O campo order_by_field '$orderKey' não é uma coluna válida na tabela '$table'."
             );
         }
 
@@ -53,7 +53,7 @@ class Batching
             $values = array_values($requestData[$orderKey]);
             if (empty($values)) {
                 throw new UnprocessableEntityHttpException(
-                    "The values for the order_by_field '{$orderKey}' cannot be empty."
+                    "Os valores para o campo order_by_field '$orderKey' não podem estar vazios."
                 );
             }
 
