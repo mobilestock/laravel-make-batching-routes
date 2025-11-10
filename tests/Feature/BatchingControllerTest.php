@@ -84,10 +84,7 @@ it('should throw exception for empty values', function () {
 
     $controller = new Batching();
     $controller->find($requestServiceSpy);
-})->throws(
-    \Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException::class,
-    "The values for the order_by_field 'id' cannot be empty."
-);
+})->throws(UnprocessableEntityHttpException::class, "The values for the order_by_field 'id' cannot be empty.");
 
 it('should return grouped values', function () {
     File::put(
