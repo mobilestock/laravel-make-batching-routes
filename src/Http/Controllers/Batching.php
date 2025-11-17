@@ -9,7 +9,6 @@ use Illuminate\Validation\Rule;
 use InvalidArgumentException;
 use MobileStock\MakeBatchingRoutes\Enum\OrderByEnum;
 use MobileStock\MakeBatchingRoutes\Services\RequestService;
-use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 class Batching
 {
