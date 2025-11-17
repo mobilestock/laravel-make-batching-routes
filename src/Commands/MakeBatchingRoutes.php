@@ -335,7 +335,7 @@ it('should retrieves grouped values from {$table['name']}', function () {
     Gate::shouldReceive('allows')->andReturnTrue();
 
     \$query = http_build_query(\$queryParams);
-    \$response = \$this{$middlewareRemotion}->withHeader('X-Ignore-Scopes', 'true')->get("api/batching/grouped/{$table['name']}?\$query");
+    \$response = \$this{$middlewareRemotion}->get("api/batching/grouped/{$table['name']}?\$query");
 
     \$sorter = \$queryParams['$primaryColumn'];
 $spatialConverter
@@ -357,12 +357,13 @@ it('should retrieves all values from {$table['name']} with controller sorting', 
     \$values = \$model::withoutEvents(fn() => \$model::factory(MODEL_INSTANCES_COUNT)->create());
     $queryParams
     \$queryParams['order_by_field'] = '$primaryColumn';
+    \$queryParams['without_scopes'] = true;
 
     Auth::shouldReceive('shouldUse');
     Gate::shouldReceive('allows')->andReturnTrue();
 
     \$query = http_build_query(\$queryParams);
-    \$response = \$this{$middlewareRemotion}->withHeader('X-Ignore-Scopes', 'true')->get("api/batching/{$table['name']}?\$query");
+    \$response = \$this{$middlewareRemotion}->get("api/batching/{$table['name']}?\$query");
 $spatialConverter
     \$response->assertOk();
     \$response->assertJson(\$values->toArray());
@@ -371,8 +372,7 @@ $spatialConverter
 it('should retrieves all values from {$table['name']} without controller sorting', function () {
     \$model = new $modelNamespace();
     \$values = \$model::withoutEvents(fn() => \$model::factory(MODEL_INSTANCES_COUNT)->create());
-    \$request = Request::create('api/batching/{$table['name']}');
-    \$request->headers->set('X-Ignore-Scopes', 'true');
+    \$request = Request::create('api/batching/{$table['name']}', parameters: ['without_scopes' => true]);
     Request::swap(\$request);
 
     Auth::shouldReceive('shouldUse');
