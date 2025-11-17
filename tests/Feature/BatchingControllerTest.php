@@ -17,11 +17,11 @@ beforeEach(function () {
 dataset('datasetControllerFindSucceeds', function () {
     return [
         'with' => [
-            'parameters' => ['id' => [3, 2, 1], 'order_by_field' => 'id'],
+            'parameters' => ['id' => [3, 2, 1], 'order_by_field' => 'id', 'without_scopes' => true],
             'expected' => [['id' => 3], ['id' => 2], ['id' => 1]],
         ],
         'without' => [
-            'parameters' => [],
+            'parameters' => ['without_scopes' => true],
             'expected' => [['id' => 3], ['id' => 1], ['id' => 2]],
         ],
     ];
