@@ -346,7 +346,8 @@ $spatialConverter
 
         return \$indexA <=> \$indexB;
     });
-    \$expected = \$values->values()->toArray();
+    \$values = \$values->values();
+    \$expected = \$values->toArray();
 
     \$response->assertOk();
     \$response->assertJson(\$expected);
@@ -365,8 +366,12 @@ it('should retrieves all values from {$table['name']} with controller sorting', 
     \$query = http_build_query(\$queryParams);
     \$response = \$this{$middlewareRemotion}->get("api/batching/{$table['name']}?\$query");
 $spatialConverter
+    \$values = \$values->sortBy('$primaryColumn');
+    \$values = \$values->values();
+    \$expected = \$values->toArray();
+
     \$response->assertOk();
-    \$response->assertJson(\$values->toArray());
+    \$response->assertJson(\$expected);
 });
 
 it('should retrieves all values from {$table['name']} without controller sorting', function () {
@@ -381,7 +386,10 @@ it('should retrieves all values from {$table['name']} without controller sorting
     \$controller = new Batching();
     \$response = \$controller->find(new RequestService());
 $spatialConverter
-    \$expected = \$values->sortBy('$primaryColumn')->values()->toArray();
+    \$values = \$values->sortBy('$primaryColumn');
+    \$values = \$values->values();
+    \$expected = \$values->toArray();
+
     expect(\$response)->toBe(\$expected);
 });
 PHP;
