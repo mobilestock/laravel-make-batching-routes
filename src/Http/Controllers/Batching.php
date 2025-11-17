@@ -15,12 +15,13 @@ class Batching
 {
     public function find(RequestService $service)
     {
-        $requestData = Request::except(['limit', 'page', 'order_by_field', 'order_by_direction']);
+        $requestData = Request::except(['limit', 'page', 'order_by_field', 'order_by_direction', 'without_scopes']);
         $configs = Request::validate([
             'limit' => ['nullable', 'integer', 'min:0', 'max:1000'],
             'page' => ['nullable', 'integer', 'min:1'],
             'order_by_field' => ['nullable', 'string'],
             'order_by_direction' => ['nullable', Rule::enum(\MobileStock\MakeBatchingRoutes\Enum\OrderByEnum::class)],
+            'without_scopes' => ['nullable', 'boolean'],
         ]);
 
         $limit = $configs['limit'] ?? 1000;
@@ -31,9 +32,11 @@ class Batching
         $model = $service->getRouteModel(false);
         $query = $model::query()->limit($limit)->offset($offset);
 
-        $hasPermissionToIgnoreScopes = $service->shouldIgnoreModelScopes($model);
-        if ($hasPermissionToIgnoreScopes) {
-            $query->withoutGlobalScopes();
+        if (!empty($configs['without_scopes'])) {
+            $hasPermissionToIgnoreScopes = $service->shouldIgnoreModelScopes($model);
+            if ($hasPermissionToIgnoreScopes) {
+                $query->withoutGlobalScopes();
+            }
         }
 
         $table = $model->getTable();
