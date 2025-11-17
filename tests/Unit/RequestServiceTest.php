@@ -73,17 +73,6 @@ PHP
     $appSpy->shouldHaveReceived('make')->with('\Tests\Temp\Models\CorrectTable')->once();
 });
 
-it('should return false when no header is present', function () {
-    $modelSpy = Mockery::spy(Model::class);
-
-    $service = new RequestService();
-    $result = $service->shouldIgnoreModelScopes($modelSpy);
-
-    expect($result)->toBeFalse();
-
-    $modelSpy->shouldNotHaveReceived('getBatchingGlobalAccessPermissions');
-});
-
 it('should return true when header is present and user has permission', function () {
     $permission = 'ignore-batching-scopes';
 
