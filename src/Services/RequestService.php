@@ -54,11 +54,6 @@ class RequestService
 
     public function shouldIgnoreModelScopes(Model $model): bool
     {
-        $shouldIgnoreScope = Request::header('X-Ignore-Scopes');
-        if (empty($shouldIgnoreScope)) {
-            return false;
-        }
-
         $permissions = $model::getBatchingGlobalAccessPermissions();
 
         $hasPermissionToIgnoreScopes = $permissions->some(function (string $permission): bool {
