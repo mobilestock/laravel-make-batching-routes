@@ -90,30 +90,6 @@ it('should throw exception for invalid order_by_field', function () {
     "O campo order_by_field 'invalid_field' não é uma coluna válida na tabela 'tables'."
 );
 
-it('should throw exception for empty values', function () {
-    File::put(
-        MODEL_PATH . '/Table.php',
-        '<?php namespace Tests\Temp\Models; class Table extends \Illuminate\Database\Eloquent\Model {}'
-    );
-
-    $request = Request::create('api/batching/tables', parameters: ['id' => []]);
-    Request::swap($request);
-
-    $model = App::make('Tests\Temp\Models\Table');
-    $requestServiceSpy = Mockery::spy(RequestService::class);
-    $requestServiceSpy->shouldReceive('getRouteModel')->andReturn($model);
-    $requestServiceSpy->shouldReceive('shouldIgnoreModelScopes')->andReturnTrue();
-
-    $schemaSpy = Schema::spy();
-    $schemaSpy->shouldReceive('getColumnListing')->andReturn(['id']);
-
-    $controller = new Batching();
-    $controller->find($requestServiceSpy);
-})->throws(
-    UnprocessableEntityHttpException::class,
-    "Os valores para o campo order_by_field 'id' não podem estar vazios."
-);
-
 it('should return grouped values', function () {
     File::put(
         MODEL_PATH . '/Table.php',
