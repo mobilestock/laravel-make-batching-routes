@@ -48,24 +48,9 @@ class Batching
             );
         }
 
-        if (empty($requestData)) {
-            $direction = $configs['order_by_direction'] ?? OrderByEnum::ASC->value;
+        $direction = $configs['order_by_direction'] ?? OrderByEnum::ASC->value;
 
-            $query->orderBy($orderKey, $direction);
-        } else {
-            $values = array_values($requestData[$orderKey] ?? []);
-            if (empty($values)) {
-                throw new UnprocessableEntityHttpException(
-                    "Os valores para o campo order_by_field '$orderKey' não podem estar vazios."
-                );
-            }
-
-            $sqlBindings = array_map(fn($index) => "WHEN ? THEN {$index}", array_keys($values));
-            $sqlBindings = implode(' ', $sqlBindings);
-            $sql = "CASE $orderKey $sqlBindings END";
-
-            $query->orderByRaw($sql, $values);
-        }
+        $query->orderBy($orderKey, $direction);
 
         foreach ($requestData as $key => $value) {
             $query->whereIn($key, $value);
