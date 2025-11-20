@@ -331,9 +331,6 @@ it('should retrieves grouped values from {$table['name']}', function () {
     \$values = \$model::withoutEvents(fn() => \$model::factory(MODEL_INSTANCES_COUNT)->create());
     $queryParams
 
-    Auth::shouldReceive('shouldUse');
-    Gate::shouldReceive('allows')->andReturnTrue();
-
     \$query = http_build_query(\$queryParams);
     \$response = \$this{$middlewareRemotion}->get("api/batching/grouped/{$table['name']}?\$query");
 
@@ -360,9 +357,6 @@ it('should retrieves all values from {$table['name']} with controller sorting', 
     \$queryParams['order_by_field'] = '$primaryColumn';
     \$queryParams['without_scopes'] = true;
 
-    Auth::shouldReceive('shouldUse');
-    Gate::shouldReceive('allows')->andReturnTrue();
-
     \$query = http_build_query(\$queryParams);
     \$response = \$this{$middlewareRemotion}->get("api/batching/{$table['name']}?\$query");
 $spatialConverter
@@ -380,11 +374,8 @@ it('should retrieves all values from {$table['name']} without controller sorting
     \$request = Request::create('api/batching/{$table['name']}', parameters: ['without_scopes' => true]);
     Request::swap(\$request);
 
-    Auth::shouldReceive('shouldUse');
-    Gate::shouldReceive('allows')->andReturnTrue();
-
     \$controller = new Batching();
-    \$response = \$controller->find(new RequestService());
+    \$response = \$controller->find(\$this->serviceSpy);
 $spatialConverter
     \$values = \$values->sortBy('$primaryColumn');
     \$values = \$values->values();
@@ -401,8 +392,6 @@ PHP;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Schema;
 use MobileStock\MakeBatchingRoutes\Http\Controllers\Batching;
@@ -414,6 +403,10 @@ const MODEL_INSTANCES_COUNT = 3;
 
 beforeEach(function () {
     Schema::disableForeignKeyConstraints();
+
+    \$this->serviceSpy = Mockery::spy(RequestService::class)->makePartial();
+    \$this->serviceSpy->shouldReceive('shouldIgnoreModelScopes')->andReturnTrue();
+    App::instance(RequestService::class, \$this->serviceSpy);
 });
 
 $testContent
