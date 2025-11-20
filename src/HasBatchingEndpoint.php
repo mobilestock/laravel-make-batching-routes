@@ -24,7 +24,7 @@ trait HasBatchingEndpoint
     /** @return Collection<string> */
     protected static function getBatchingGlobalAccessPermissions(): Collection
     {
-        $permissions = static::$globalAccessPermissions ?? ['admin'];
+        $permissions = static::$globalAccessPermissions ?? [];
         $permissions = Collection::make($permissions);
 
         return $permissions;

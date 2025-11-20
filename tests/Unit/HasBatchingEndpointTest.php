@@ -45,7 +45,7 @@ dataset('datasetGlobalAccessPermissions', [
         new class {
             use HasBatchingEndpoint;
         },
-        Collection::make(['admin']),
+        Collection::make([]),
     ],
     'no' => [
         new class {
