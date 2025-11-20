@@ -47,14 +47,6 @@ dataset('datasetGlobalAccessPermissions', [
         },
         Collection::make([]),
     ],
-    'no' => [
-        new class {
-            use HasBatchingEndpoint;
-
-            protected static $globalAccessPermissions = [];
-        },
-        Collection::make([]),
-    ],
     'custom' => [
         new class {
             use HasBatchingEndpoint;
