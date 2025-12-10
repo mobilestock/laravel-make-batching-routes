@@ -4,6 +4,7 @@ use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Schema;
+use MobileStock\MakeBatchingRoutes\Enum\OrderByEnum;
 use MobileStock\MakeBatchingRoutes\Http\Controllers\Batching;
 use MobileStock\MakeBatchingRoutes\Services\RequestService;
 
@@ -14,19 +15,37 @@ beforeEach(function () {
 });
 
 dataset('datasetControllerFindSucceeds', function () {
+    $defaultParameters = [
+        'id' => [3, 1, 2],
+        'order_by_field' => 'id',
+        'without_scopes' => true,
+    ];
+
     return [
-        'with' => [
-            'parameters' => ['id' => [3, 2, 1], 'order_by_field' => 'id', 'without_scopes' => true],
+        'when the sorting direction is set to ' . OrderByEnum::ASC->name => [
+            'parameters' => [...$defaultParameters, 'order_by_direction' => OrderByEnum::ASC->value],
+            'expected' => [['id' => 1], ['id' => 2], ['id' => 3]],
+        ],
+        'when the sorting direction is set to ' . OrderByEnum::DESC->name => [
+            'parameters' => [...$defaultParameters, 'order_by_direction' => OrderByEnum::DESC->value],
             'expected' => [['id' => 3], ['id' => 2], ['id' => 1]],
         ],
-        'without' => [
-            'parameters' => ['without_scopes' => true],
+        'when the sorting direction is set to ' . OrderByEnum::CUSTOM->name => [
+            'parameters' => [...$defaultParameters, 'order_by_direction' => OrderByEnum::CUSTOM->value],
             'expected' => [['id' => 3], ['id' => 1], ['id' => 2]],
+        ],
+        'even when the sorting direction is not defined, as long as the parameters are provided' => [
+            'parameters' => $defaultParameters,
+            'expected' => [['id' => 3], ['id' => 1], ['id' => 2]],
+        ],
+        'even when the sorting direction is not defined and without passing the parameters' => [
+            'parameters' => ['without_scopes' => true],
+            'expected' => [['id' => 1], ['id' => 2], ['id' => 3]],
         ],
     ];
 });
 
-it('should work correctly :dataset sorting', function (array $parameters, array $expected) {
+it('should function correctly :dataset', function (array $parameters, array $expected) {
     File::put(
         MODEL_PATH . '/Table.php',
         '<?php namespace Tests\Temp\Models; class Table extends \Illuminate\Database\Eloquent\Model {}'
