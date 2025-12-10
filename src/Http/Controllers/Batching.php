@@ -56,7 +56,7 @@ class Batching
         if ($direction === OrderByEnum::CUSTOM) {
             if (!isset($requestData[$orderKey])) {
                 throw new InvalidArgumentException(
-                    'Para utilizar a ordenação customizada, é necessário que seja enviado também os valores de filtragem'
+                    "Para utilizar a ordenação customizada (CUSTOM), é necessário fornecer valores de filtragem para o campo '$orderKey'"
                 );
             }
 
