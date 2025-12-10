@@ -395,9 +395,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Schema;
+use MobileStock\MakeBatchingRoutes\Enum\OrderByEnum;
 use MobileStock\MakeBatchingRoutes\Http\Controllers\Batching;
 use MobileStock\MakeBatchingRoutes\Services\RequestService;
-use MobileStock\MakeBatchingRoutes\Enum\OrderByEnum;
 
 uses(RefreshDatabase::class);
 
