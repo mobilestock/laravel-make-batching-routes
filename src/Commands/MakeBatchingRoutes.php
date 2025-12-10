@@ -355,6 +355,7 @@ it('should retrieves all values from {$table['name']} with controller sorting', 
     \$values = \$model::withoutEvents(fn() => \$model::factory(MODEL_INSTANCES_COUNT)->create());
     $queryParams
     \$queryParams['order_by_field'] = '$primaryColumn';
+    \$queryParams['order_by_direction'] = OrderByEnum::ASC->value;
     \$queryParams['without_scopes'] = true;
 
     \$query = http_build_query(\$queryParams);
@@ -396,6 +397,7 @@ use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Schema;
 use MobileStock\MakeBatchingRoutes\Http\Controllers\Batching;
 use MobileStock\MakeBatchingRoutes\Services\RequestService;
+use MobileStock\MakeBatchingRoutes\Enum\OrderByEnum;
 
 uses(RefreshDatabase::class);
 
