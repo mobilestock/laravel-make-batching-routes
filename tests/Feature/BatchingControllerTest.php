@@ -84,13 +84,20 @@ it('should function correctly :dataset', function (array $parameters, array $exp
     $schemaSpy->shouldHaveReceived('getColumnListing')->with('tables')->once();
 })->with('datasetControllerFindSucceeds');
 
-it('should throw exception for invalid order_by_field', function () {
+dataset('datasetControllerFindException', [
+    'when an invalid order_by_field is provided' => [['order_by_field' => 'invalid_field']],
+    'when custom order is requested without providing parameters' => [
+        ['order_by_direction' => OrderByEnum::CUSTOM->value],
+    ],
+]);
+
+it('should throw exception :dataset', function (array $parameters) {
     File::put(
         MODEL_PATH . '/Table.php',
         '<?php namespace Tests\Temp\Models; class Table extends \Illuminate\Database\Eloquent\Model {}'
     );
 
-    $request = Request::create('api/batching/tables', parameters: ['order_by_field' => 'invalid_field']);
+    $request = Request::create('api/batching/tables', parameters: $parameters);
     Request::swap($request);
 
     $model = App::make('Tests\Temp\Models\Table');
@@ -103,10 +110,9 @@ it('should throw exception for invalid order_by_field', function () {
 
     $controller = new Batching();
     $controller->find($requestServiceSpy);
-})->throws(
-    InvalidArgumentException::class,
-    "O campo order_by_field 'invalid_field' não é uma coluna válida na tabela 'tables'."
-);
+})
+    ->throws(InvalidArgumentException::class)
+    ->with('datasetControllerFindException');
 
 it('should return grouped values', function () {
     File::put(
