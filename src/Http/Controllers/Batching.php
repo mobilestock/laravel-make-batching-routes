@@ -54,6 +54,12 @@ class Batching
         };
 
         if ($direction === OrderByEnum::CUSTOM) {
+            if (!isset($requestData[$orderKey])) {
+                throw new InvalidArgumentException(
+                    'Para utilizar a ordenação customizada, é necessário que seja enviado também os valores de filtragem'
+                );
+            }
+
             $sorter = $requestData[$orderKey];
             $bindings = array_fill(0, count($sorter), '?');
             $placeholders = implode(', ', $bindings);
