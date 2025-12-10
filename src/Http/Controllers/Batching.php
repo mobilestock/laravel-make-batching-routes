@@ -47,9 +47,21 @@ class Batching
             );
         }
 
-        $direction = $configs['order_by_direction'] ?? OrderByEnum::ASC->value;
+        $direction = match (true) {
+            !empty($configs['order_by_direction']) => OrderByEnum::from($configs['order_by_direction']),
+            !empty($requestData) => OrderByEnum::CUSTOM,
+            default => OrderByEnum::ASC,
+        };
 
-        $query->orderBy($orderKey, $direction);
+        if ($direction === OrderByEnum::CUSTOM) {
+            $sorter = $requestData[$orderKey];
+            $bindings = array_fill(0, count($sorter), '?');
+            $placeholders = implode(', ', $bindings);
+
+            $query->orderByRaw("FIELD($orderKey, $placeholders)", $sorter);
+        } else {
+            $query->orderBy($orderKey, $direction->value);
+        }
 
         foreach ($requestData as $key => $value) {
             $query->whereIn($key, $value);
