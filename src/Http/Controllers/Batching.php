@@ -19,7 +19,7 @@ class Batching
             'limit' => ['nullable', 'integer', 'min:0', 'max:1000'],
             'page' => ['nullable', 'integer', 'min:1'],
             'order_by_field' => ['nullable', 'string'],
-            'order_by_direction' => ['nullable', Rule::enum(OrderByEnum::class)],
+            'order_by_direction' => ['nullable', Rule::enum(\MobileStock\MakeBatchingRoutes\Enum\OrderByEnum::class)],
             'without_scopes' => ['nullable', 'boolean'],
         ]);
 
