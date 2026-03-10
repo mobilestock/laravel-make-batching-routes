@@ -66,7 +66,7 @@ class Batching
 
             $query->orderByRaw("FIELD(`$orderKey`, $placeholders)", $sorter);
         } else {
-            $query->orderBy("`$orderKey`", $direction->value);
+            $query->orderBy("$orderKey", $direction->value);
         }
 
         foreach ($requestData as $key => $value) {
