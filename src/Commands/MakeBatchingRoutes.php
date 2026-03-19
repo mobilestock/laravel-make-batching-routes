@@ -151,7 +151,7 @@ class MakeBatchingRoutes extends Command
             $fields[] = match (true) {
                 Str::contains($columnName, 'avatar') => "'$columnName' => \$this->faker{$uniqueKey}->imageUrl(),",
                 Str::contains($columnName, 'phone')
-                    => "'$columnName' => \$this->faker{$uniqueKey}->numerify('###########'),",
+                    => "'$columnName' => \$this->faker{$uniqueKey}->cellphoneNumber(false),",
                 Str::contains($columnName, 'document') => "'$columnName' => \$this->faker{$uniqueKey}->document(),",
                 Str::contains($columnType, 'tinyint(1)') => "'$columnName' => \$this->faker{$uniqueKey}->boolean(),",
                 Str::contains($columnType, ['decimal', 'double', 'float'])
