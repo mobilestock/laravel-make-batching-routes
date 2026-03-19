@@ -128,7 +128,7 @@ it('should convert columns correctly', function () {
     expect($convertedColumns)->toMatchArray([
         "'id' => \$this->faker->unique()->numberBetween(1, 64),",
         "'avatar' => \$this->faker->imageUrl(),",
-        "'phone_number' => \$this->faker->cellphoneNumber(false),",
+        "'phone_number' => \$this->faker->numerify('###########'),",
         "'document' => \$this->faker->document(),",
         "'is_active' => \$this->faker->boolean(),",
         "'number' => \$this->faker->numberBetween(1, 64),",
