@@ -76,11 +76,10 @@ class Batching
         $databaseValues = $query->get()->toArray();
 
         if ($direction === OrderByEnum::CUSTOM) {
-            $filterKey = array_key_first($requestData);
-            $requestedValues = $requestData[$filterKey];
+            $requestedValues = $requestData[$orderKey];
             $indexed = [];
             foreach ($databaseValues as $row) {
-                $key = $row[$filterKey];
+                $key = $row[$orderKey];
                 $indexed[$key] = $row;
             }
 
