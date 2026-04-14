@@ -75,6 +75,18 @@ class Batching
 
         $databaseValues = $query->get()->toArray();
 
+        if ($direction === OrderByEnum::CUSTOM) {
+            $filterKey = array_key_first($requestData);
+            $requestedValues = $requestData[$filterKey];
+            $indexed = [];
+            foreach ($databaseValues as $row) {
+                $key = $row[$filterKey];
+                $indexed[$key] = $row;
+            }
+
+            $databaseValues = array_map(fn(mixed $value): ?array => $indexed[$value] ?? null, $requestedValues);
+        }
+
         return $databaseValues;
     }
 

@@ -84,6 +84,64 @@ it('should function correctly :dataset', function (array $parameters, array $exp
     $schemaSpy->shouldHaveReceived('getColumnListing')->with('tables')->once();
 })->with('datasetControllerFindSucceeds');
 
+dataset('datasetControllerFindWithNullPadding', function () {
+    return [
+        'when some items are not found, it should return null in their positions' => [
+            'parameters' => ['id' => [3, 1, 2], 'order_by_field' => 'id', 'without_scopes' => true],
+            'dbResults' => [['id' => 1]],
+            'expected' => [null, ['id' => 1], null],
+        ],
+        'when no items are found, it should return an array of nulls' => [
+            'parameters' => ['id' => [3, 1, 2], 'order_by_field' => 'id', 'without_scopes' => true],
+            'dbResults' => [],
+            'expected' => [null, null, null],
+        ],
+    ];
+});
+
+it('should apply null-padding for CUSTOM direction :dataset', function (
+    array $parameters,
+    array $dbResults,
+    array $expected
+) {
+    File::put(
+        MODEL_PATH . '/Table.php',
+        '<?php namespace Tests\Temp\Models; class Table extends \Illuminate\Database\Eloquent\Model {}'
+    );
+
+    $request = Request::create('api/batching/tables', parameters: $parameters);
+    Request::swap($request);
+
+    $model = App::make('Tests\Temp\Models\Table');
+    $requestServiceSpy = Mockery::spy(RequestService::class);
+    $requestServiceSpy->shouldReceive('getRouteModel')->andReturn($model);
+    $requestServiceSpy->shouldReceive('shouldIgnoreModelScopes')->andReturnTrue();
+
+    $schemaSpy = Schema::spy();
+    $schemaSpy->shouldReceive('getColumnListing')->andReturn(['id']);
+
+    $pdoMock = Mockery::mock(PDO::class);
+
+    $connectionMock = Mockery::mock(Connection::class)->makePartial();
+    $connectionMock->__construct($pdoMock);
+    $connectionMock->shouldReceive('select')->andReturn($dbResults);
+
+    $resolverMock = Mockery::mock(DatabaseManager::class);
+    $resolverMock->shouldReceive('connection')->andReturn($connectionMock);
+
+    Model::setConnectionResolver($resolverMock);
+
+    $controller = new Batching();
+    $response = $controller->find($requestServiceSpy);
+
+    expect($response)->toBe($expected);
+
+    $requestServiceSpy->shouldHaveReceived('getRouteModel')->once();
+    $requestServiceSpy->shouldHaveReceived('shouldIgnoreModelScopes')->once();
+
+    $schemaSpy->shouldHaveReceived('getColumnListing')->with('tables')->once();
+})->with('datasetControllerFindWithNullPadding');
+
 dataset('datasetControllerFindException', [
     'when an invalid order_by_field is provided' => [['order_by_field' => 'invalid_field']],
     'when custom order is requested without providing parameters' => [
