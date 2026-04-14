@@ -86,7 +86,7 @@ it('should function correctly :dataset', function (array $parameters, array $exp
 
 dataset('datasetControllerFindWithNullPadding', function () {
     return [
-        'when some items are not found, it should return null in their positions' => [
+        'when some items are not found, it should return empty arrays in their positions' => [
             'parameters' => [
                 'id' => [3, 1, 2],
                 'order_by_field' => 'id',
@@ -94,9 +94,9 @@ dataset('datasetControllerFindWithNullPadding', function () {
                 'without_scopes' => true,
             ],
             'dbResults' => [['id' => 1]],
-            'expected' => [null, ['id' => 1], null],
+            'expected' => [[], ['id' => 1], []],
         ],
-        'when no items are found, it should return an array of nulls' => [
+        'when no items are found, it should return an array of empty arrays' => [
             'parameters' => [
                 'id' => [3, 1, 2],
                 'order_by_field' => 'id',
@@ -104,7 +104,7 @@ dataset('datasetControllerFindWithNullPadding', function () {
                 'without_scopes' => true,
             ],
             'dbResults' => [],
-            'expected' => [null, null, null],
+            'expected' => [[], [], []],
         ],
     ];
 });

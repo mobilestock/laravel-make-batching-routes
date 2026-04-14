@@ -83,7 +83,7 @@ class Batching
                 $indexed[$key] = $row;
             }
 
-            $databaseValues = array_map(fn(mixed $value): ?array => $indexed[$value] ?? null, $requestedValues);
+            $databaseValues = array_map(fn(mixed $value): array => $indexed[$value] ?? [], $requestedValues);
         }
 
         return $databaseValues;
