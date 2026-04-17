@@ -53,17 +53,27 @@ it('should generates a valid document number', function () {
     expect($document)->toMatch('/^(\d{11}|\d{8}0001\d{2})$/');
 });
 
-dataset('signedUnsignedIntegerTypes', [
-    'signed tinyInt' => ['tinyInt', false, 1, 2 ** 7 - 1],
-    'unsigned tinyInt' => ['tinyInt', true, 0, 2 ** 8 - 1],
-    'signed smallInt' => ['smallInt', false, 1, 2 ** 15 - 1],
-    'unsigned smallInt' => ['smallInt', true, 0, 2 ** 16 - 1],
-    'signed mediumInt' => ['mediumInt', false, 1, 2 ** 23 - 1],
-    'unsigned mediumInt' => ['mediumInt', true, 0, 2 ** 24 - 1],
-    'signed int' => ['int', false, 1, 2 ** 31 - 1],
-    'unsigned int' => ['int', true, 0, 2 ** 32 - 1],
-    'unsigned bigInt' => ['bigInt', true, 2 ** 32, 2 ** 33],
-]);
+dataset('signedUnsignedIntegerTypes', function () {
+    $exponentValue = [
+        'tiny_int' => 2 ** 7,
+        'small_int' => 2 ** 15,
+        'medium_int' => 2 ** 23,
+        'int' => 2 ** 31,
+        'big_int' => 2 ** 32,
+    ];
+
+    return [
+        'signed tinyInt' => ['tinyInt', false, -$exponentValue['tiny_int'], $exponentValue['tiny_int'] - 1],
+        'unsigned tinyInt' => ['tinyInt', true, 0, 2 ** 8 - 1],
+        'signed smallInt' => ['smallInt', false, -$exponentValue['small_int'], $exponentValue['small_int'] - 1],
+        'unsigned smallInt' => ['smallInt', true, 0, 2 ** 16 - 1],
+        'signed mediumInt' => ['mediumInt', false, -$exponentValue['medium_int'], $exponentValue['medium_int'] - 1],
+        'unsigned mediumInt' => ['mediumInt', true, 0, 2 ** 24 - 1],
+        'signed int' => ['int', false, -$exponentValue['int'], $exponentValue['int'] - 1],
+        'unsigned int' => ['int', true, 0, $exponentValue['big_int'] - 1],
+        'unsigned bigInt' => ['bigInt', true, $exponentValue['big_int'], 2 ** 33],
+    ];
+});
 
 it('should generate a :dataset value within valid range', function (
     string $method,

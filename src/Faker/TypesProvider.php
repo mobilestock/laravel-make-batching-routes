@@ -58,36 +58,40 @@ class TypesProvider extends Base
 
     public function tinyInt(bool $unsigned = false): int
     {
+        $exponentValue = 2 ** 7;
         $value = $unsigned
             ? $this->generator->numberBetween(0, 2 ** 8 - 1)
-            : $this->generator->numberBetween(1, 2 ** 7 - 1);
+            : $this->generator->numberBetween(-$exponentValue, $exponentValue - 1);
 
         return $value;
     }
 
     public function smallInt(bool $unsigned = false): int
     {
+        $exponentValue = 2 ** 15;
         $value = $unsigned
             ? $this->generator->numberBetween(0, 2 ** 16 - 1)
-            : $this->generator->numberBetween(1, 2 ** 15 - 1);
+            : $this->generator->numberBetween(-$exponentValue, $exponentValue - 1);
 
         return $value;
     }
 
     public function mediumInt(bool $unsigned = false): int
     {
+        $exponentValue = 2 ** 23;
         $value = $unsigned
             ? $this->generator->numberBetween(0, 2 ** 24 - 1)
-            : $this->generator->numberBetween(1, 2 ** 23 - 1);
+            : $this->generator->numberBetween(-$exponentValue, $exponentValue - 1);
 
         return $value;
     }
 
     public function int(bool $unsigned = false): int
     {
+        $exponentValue = 2 ** 31;
         $value = $unsigned
             ? $this->generator->numberBetween(0, 2 ** 32 - 1)
-            : $this->generator->numberBetween(1, 2 ** 31 - 1);
+            : $this->generator->numberBetween(-$exponentValue, $exponentValue - 1);
 
         return $value;
     }
@@ -101,12 +105,15 @@ class TypesProvider extends Base
      */
     public function bigInt(bool $unsigned = false): int
     {
-        $positive = $this->generator->numberBetween(2 ** 32, 2 ** 33);
+        $exponentMinValue = 2 ** 32;
+        $exponentMaxValue = 2 ** 33;
+
+        $positive = $this->generator->numberBetween($exponentMinValue, $exponentMaxValue);
         if ($unsigned) {
             return $positive;
         }
 
-        $negative = $this->generator->numberBetween(-(2 ** 33), -(2 ** 32));
+        $negative = $this->generator->numberBetween(-$exponentMaxValue, -$exponentMinValue);
         $value = $this->generator->randomElement([$negative, $positive]);
 
         return $value;
