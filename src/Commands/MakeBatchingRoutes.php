@@ -218,7 +218,7 @@ use MobileStock\MakeBatchingRoutes\Faker\TypesProvider;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\\$this->projectNamespace\\Models\\$fileName>
- * @property \Faker\Generator|TypesProvider \$faker
+ * @property \Faker\Generator&TypesProvider \$faker
  */
 class {$fileName}BaseFactory extends Factory
 {
