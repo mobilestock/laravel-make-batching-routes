@@ -124,7 +124,7 @@ class MakeBatchingRoutes extends Command
         $lines = explode(PHP_EOL, $columnsSql);
         $columns = [];
         foreach ($lines as $line) {
-            if (preg_match('/^\s+`([^`]+)`\s+([a-zA-Z0-9_]+(?:\([^)]*\))?(?:\s+unsigned)?)/', $line, $columnMatches)) {
+            if (preg_match('/^\s+`([^`]+)`\s+([a-zA-Z0-9_]+(?:\([^)]*\))?(?:\s+unsigned)?)/i', $line, $columnMatches)) {
                 $columns[$columnMatches[1]] = $columnMatches[2];
             }
         }
