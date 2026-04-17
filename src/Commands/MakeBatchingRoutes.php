@@ -163,9 +163,8 @@ class MakeBatchingRoutes extends Command
                 Str::contains($columnType, 'mediumint')
                     => "'$columnName' => \$this->faker{$uniqueKey}->mediumInt(unsigned: $unsigned),",
                 Str::contains($columnType, 'bigint')
-                    => "'$columnName' => \$this->faker{$uniqueKey}->bigInt(),",
-                Str::contains($columnType, 'bit')
-                    => "'$columnName' => \$this->faker{$uniqueKey}->bit(),",
+                    => "'$columnName' => \$this->faker{$uniqueKey}->bigInt(unsigned: $unsigned),",
+                Str::contains($columnType, 'bit') => "'$columnName' => \$this->faker{$uniqueKey}->bit(),",
                 Str::contains($columnType, ['decimal', 'double', 'float'])
                     => "'$columnName' => \$this->faker{$uniqueKey}->randomFloat(2, 1, 64),",
                 Str::contains($columnType, 'char(36)') => "'$columnName' => \$this->faker{$uniqueKey}->uuid(),",

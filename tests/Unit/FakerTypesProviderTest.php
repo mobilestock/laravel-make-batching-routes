@@ -62,6 +62,7 @@ dataset('signedUnsignedIntegerTypes', [
     'unsigned mediumInt' => ['mediumInt', true, 0, 2 ** 24 - 1],
     'signed int' => ['int', false, 1, 2 ** 31 - 1],
     'unsigned int' => ['int', true, 0, 2 ** 32 - 1],
+    'unsigned bigInt' => ['bigInt', true, 2 ** 32, 2 ** 33],
 ]);
 
 it('should generate a :dataset value within valid range', function (
@@ -72,19 +73,25 @@ it('should generate a :dataset value within valid range', function (
 ) {
     $value = $this->typesProvider->$method(unsigned: $unsigned);
 
-    expect($value)->toBeInt()->toBeGreaterThanOrEqual($min)->toBeLessThanOrEqual($max);
+    expect($value)->toBeInt();
+    expect($value)->toBeGreaterThanOrEqual($min);
+    expect($value)->toBeLessThanOrEqual($max);
 })->with('signedUnsignedIntegerTypes');
 
-dataset('fixedRangeIntegerTypes', [
-    'bigInt' => ['bigInt', 2 ** 32, 2 ** 33],
-    'bit' => ['bit', 0, 2 ** 6 - 1],
-]);
+it('should generate a signed bigInt within reduced negative or positive range', function () {
+    $value = $this->typesProvider->bigInt(unsigned: false);
 
-it('should generate a :dataset value within fixed range', function (string $method, int $min, int $max) {
-    $value = $this->typesProvider->$method();
+    expect($value)->toBeInt();
+    expect($value >= 2 ** 32 || $value <= -(2 ** 32))->toBeTrue();
+});
 
-    expect($value)->toBeInt()->toBeGreaterThanOrEqual($min)->toBeLessThanOrEqual($max);
-})->with('fixedRangeIntegerTypes');
+it('should generate a bit value within valid range', function () {
+    $value = $this->typesProvider->bit();
+
+    expect($value)->toBeInt();
+    expect($value)->toBeGreaterThanOrEqual(0);
+    expect($value)->toBeLessThanOrEqual(2 ** 6 - 1);
+});
 
 dataset('invalidBitSizes', [
     'zero' => [0],
