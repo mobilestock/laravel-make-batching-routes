@@ -155,7 +155,7 @@ it('should convert columns correctly', function () {
         "'number_unsigned' => \$this->faker->int(unsigned: true),",
         "'big_id' => \$this->faker->bigInt(unsigned: false),",
         "'big_id_unsigned' => \$this->faker->bigInt(unsigned: true),",
-        "'flags' => \$this->faker->bit(),",
+        "'flags' => \$this->faker->bit(size: 8),",
         "'status' => \$this->faker->randomElement(['PENDING', 'APPROVED', 'REJECTED']),",
         "'permissions' => implode(',', \$this->faker->randomElements(['READ', 'WRITE'])),",
         "'note' => \$this->faker->randomFloat(2, 1, 64),",
