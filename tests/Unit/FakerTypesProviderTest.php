@@ -52,3 +52,36 @@ it('should generates a valid document number', function () {
     $document = $this->typesProvider->document();
     expect($document)->toMatch('/^(\d{11}|\d{8}0001\d{2})$/');
 });
+
+dataset('signedUnsignedIntegerTypes', [
+    'signed tinyInt' => ['tinyInt', false, 1, 2 ** 7 - 1],
+    'unsigned tinyInt' => ['tinyInt', true, 0, 2 ** 8 - 1],
+    'signed smallInt' => ['smallInt', false, 1, 2 ** 15 - 1],
+    'unsigned smallInt' => ['smallInt', true, 0, 2 ** 16 - 1],
+    'signed mediumInt' => ['mediumInt', false, 1, 2 ** 23 - 1],
+    'unsigned mediumInt' => ['mediumInt', true, 0, 2 ** 24 - 1],
+    'signed int' => ['int', false, 1, 2 ** 31 - 1],
+    'unsigned int' => ['int', true, 0, 2 ** 32 - 1],
+]);
+
+it('should generate a :dataset value within valid range', function (
+    string $method,
+    bool $unsigned,
+    int $min,
+    int $max
+) {
+    $value = $this->typesProvider->$method(unsigned: $unsigned);
+
+    expect($value)->toBeInt()->toBeGreaterThanOrEqual($min)->toBeLessThanOrEqual($max);
+})->with('signedUnsignedIntegerTypes');
+
+dataset('fixedRangeIntegerTypes', [
+    'bigInt' => ['bigInt', 2 ** 32, 2 ** 33],
+    'bit' => ['bit', 1, 2 ** 6],
+]);
+
+it('should generate a :dataset value within fixed range', function (string $method, int $min, int $max) {
+    $value = $this->typesProvider->$method();
+
+    expect($value)->toBeInt()->toBeGreaterThanOrEqual($min)->toBeLessThanOrEqual($max);
+})->with('fixedRangeIntegerTypes');

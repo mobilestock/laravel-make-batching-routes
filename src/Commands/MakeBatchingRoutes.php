@@ -124,7 +124,7 @@ class MakeBatchingRoutes extends Command
         $lines = explode(PHP_EOL, $columnsSql);
         $columns = [];
         foreach ($lines as $line) {
-            if (preg_match('/^\s+`([^`]+)`\s+([a-zA-Z0-9_]+(?:\([^)]*\))?)/', $line, $columnMatches)) {
+            if (preg_match('/^\s+`([^`]+)`\s+([a-zA-Z0-9_]+(?:\([^)]*\))?(?:\s+unsigned)?)/', $line, $columnMatches)) {
                 $columns[$columnMatches[1]] = $columnMatches[2];
             }
         }
@@ -147,6 +147,8 @@ class MakeBatchingRoutes extends Command
                 continue;
             }
 
+            $unsigned = Str::contains($columnType, 'unsigned') ? 'true' : 'false';
+
             preg_match('/\((.+)\)/', $columnType, $matches);
             $fields[] = match (true) {
                 Str::contains($columnName, 'avatar') => "'$columnName' => \$this->faker{$uniqueKey}->imageUrl(),",
@@ -154,6 +156,16 @@ class MakeBatchingRoutes extends Command
                     => "'$columnName' => \$this->faker{$uniqueKey}->cellphoneNumber(false),",
                 Str::contains($columnName, 'document') => "'$columnName' => \$this->faker{$uniqueKey}->document(),",
                 Str::contains($columnType, 'tinyint(1)') => "'$columnName' => \$this->faker{$uniqueKey}->boolean(),",
+                Str::contains($columnType, 'tinyint')
+                    => "'$columnName' => \$this->faker{$uniqueKey}->tinyInt(unsigned: $unsigned),",
+                Str::contains($columnType, 'smallint')
+                    => "'$columnName' => \$this->faker{$uniqueKey}->smallInt(unsigned: $unsigned),",
+                Str::contains($columnType, 'mediumint')
+                    => "'$columnName' => \$this->faker{$uniqueKey}->mediumInt(unsigned: $unsigned),",
+                Str::contains($columnType, 'bigint')
+                    => "'$columnName' => \$this->faker{$uniqueKey}->bigInt(),",
+                Str::contains($columnType, 'bit')
+                    => "'$columnName' => \$this->faker{$uniqueKey}->bit(),",
                 Str::contains($columnType, ['decimal', 'double', 'float'])
                     => "'$columnName' => \$this->faker{$uniqueKey}->randomFloat(2, 1, 64),",
                 Str::contains($columnType, 'char(36)') => "'$columnName' => \$this->faker{$uniqueKey}->uuid(),",
@@ -166,7 +178,7 @@ class MakeBatchingRoutes extends Command
                 Str::contains($columnType, 'polygon') => "'$columnName' => \$this->faker{$uniqueKey}->polygon(),",
                 Str::contains($columnType, 'point') => "'$columnName' => \$this->faker{$uniqueKey}->point(),",
                 Str::contains($columnType, 'int')
-                    => "'$columnName' => \$this->faker{$uniqueKey}->numberBetween(1, 64),",
+                    => "'$columnName' => \$this->faker{$uniqueKey}->int(unsigned: $unsigned),",
                 default => "'$columnName' => null,",
             };
         }

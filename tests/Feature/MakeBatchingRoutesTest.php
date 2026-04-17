@@ -62,8 +62,10 @@ PHP;
 it('should return columns from sql schema', function () {
     $schemaContent = <<<SQL
 CREATE TABLE `test_table` (
-    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
     `name` varchar(255) NOT NULL,
+    `quantity` smallint(5) unsigned NOT NULL,
+    `flag` tinyint(1) NOT NULL DEFAULT 0,
     `created_at` timestamp NULL DEFAULT NULL,
     `updated_at` timestamp NULL DEFAULT NULL,
     PRIMARY KEY (`id`)
@@ -79,8 +81,10 @@ SQL;
 
     $columns = invokeProtectedMethod($this->command, 'getTableColumnsFromSchema', ['test_table']);
     expect($columns)->toMatchArray([
-        'id' => 'int(11)',
+        'id' => 'bigint(20) unsigned',
         'name' => 'varchar(255)',
+        'quantity' => 'smallint(5) unsigned',
+        'flag' => 'tinyint(1)',
         'created_at' => 'timestamp',
         'updated_at' => 'timestamp',
     ]);
@@ -106,7 +110,17 @@ it('should convert columns correctly', function () {
             'phone_number' => 'char(11)',
             'document' => 'char(11)',
             'is_active' => 'tinyint(1)',
+            'age' => 'tinyint(3)',
+            'age_unsigned' => 'tinyint(3) unsigned',
+            'quantity' => 'smallint(5)',
+            'quantity_unsigned' => 'smallint(5) unsigned',
+            'city_id' => 'mediumint(8)',
+            'city_id_unsigned' => 'mediumint(8) unsigned',
             'number' => 'int(11)',
+            'number_unsigned' => 'int(10) unsigned',
+            'big_id' => 'bigint(20)',
+            'big_id_unsigned' => 'bigint(20) unsigned',
+            'flags' => 'bit(8)',
             'status' => "enum('PENDING', 'APPROVED', 'REJECTED')",
             'permissions' => "set('READ', 'WRITE')",
             'note' => 'decimal(10,2)',
@@ -126,12 +140,22 @@ it('should convert columns correctly', function () {
     ]);
 
     expect($convertedColumns)->toMatchArray([
-        "'id' => \$this->faker->unique()->numberBetween(1, 64),",
+        "'id' => \$this->faker->unique()->int(unsigned: false),",
         "'avatar' => \$this->faker->imageUrl(),",
         "'phone_number' => \$this->faker->cellphoneNumber(false),",
         "'document' => \$this->faker->document(),",
         "'is_active' => \$this->faker->boolean(),",
-        "'number' => \$this->faker->numberBetween(1, 64),",
+        "'age' => \$this->faker->tinyInt(unsigned: false),",
+        "'age_unsigned' => \$this->faker->tinyInt(unsigned: true),",
+        "'quantity' => \$this->faker->smallInt(unsigned: false),",
+        "'quantity_unsigned' => \$this->faker->smallInt(unsigned: true),",
+        "'city_id' => \$this->faker->mediumInt(unsigned: false),",
+        "'city_id_unsigned' => \$this->faker->mediumInt(unsigned: true),",
+        "'number' => \$this->faker->int(unsigned: false),",
+        "'number_unsigned' => \$this->faker->int(unsigned: true),",
+        "'big_id' => \$this->faker->bigInt(),",
+        "'big_id_unsigned' => \$this->faker->bigInt(),",
+        "'flags' => \$this->faker->bit(),",
         "'status' => \$this->faker->randomElement(['PENDING', 'APPROVED', 'REJECTED']),",
         "'permissions' => implode(',', \$this->faker->randomElements(['READ', 'WRITE'])),",
         "'note' => \$this->faker->randomFloat(2, 1, 64),",
@@ -186,7 +210,7 @@ it('should create :dataset factory', function (int $putTimesCalled, bool $factor
     invokeProtectedMethod($this->command, 'insertFactoryFiles', [
         'Test',
         [
-            "'id' => \$this->faker->unique()->numberBetween(1, 64),",
+            "'id' => \$this->faker->unique()->int(unsigned: false),",
             "'name' => \$this->faker->text(255),",
             "'created_at' => now()->toDateTimeString(),",
             "'updated_at' => now()->toDateTimeString(),",
@@ -275,7 +299,7 @@ it('should handle the command correctly', function () {
         'updated_at' => 'timestamp',
     ];
     $fields = [
-        "'id' => \$this->faker->unique()->numberBetween(1, 64),",
+        "'id' => \$this->faker->unique()->int(unsigned: false),",
         "'name' => \$this->faker->text(255),",
         "'created_at' => now()->toDateTimeString(),",
         "'updated_at' => now()->toDateTimeString(),",

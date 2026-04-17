@@ -55,4 +55,61 @@ class TypesProvider extends Base
 
         return $document;
     }
+
+    public function tinyInt(bool $unsigned = false): int
+    {
+        $value = $unsigned
+            ? $this->generator->numberBetween(0, 2 ** 8 - 1)
+            : $this->generator->numberBetween(1, 2 ** 7 - 1);
+
+        return $value;
+    }
+
+    public function smallInt(bool $unsigned = false): int
+    {
+        $value = $unsigned
+            ? $this->generator->numberBetween(0, 2 ** 16 - 1)
+            : $this->generator->numberBetween(1, 2 ** 15 - 1);
+
+        return $value;
+    }
+
+    public function mediumInt(bool $unsigned = false): int
+    {
+        $value = $unsigned
+            ? $this->generator->numberBetween(0, 2 ** 24 - 1)
+            : $this->generator->numberBetween(1, 2 ** 23 - 1);
+
+        return $value;
+    }
+
+    public function int(bool $unsigned = false): int
+    {
+        $value = $unsigned
+            ? $this->generator->numberBetween(0, 2 ** 32 - 1)
+            : $this->generator->numberBetween(1, 2 ** 31 - 1);
+
+        return $value;
+    }
+
+    /**
+     * The real MySQL bigint range (signed: up to 2^63-1, unsigned: up to 2^64-1)
+     * exceeds PHP_INT_MAX on 64-bit systems. Faker's numberBetween() relies on
+     * mt_rand() which cannot handle values beyond PHP_INT_MAX. We use a reduced
+     * range (2^32 to 2^33) that still generates values clearly distinct from
+     * smaller integer types.
+     */
+    public function bigInt(): int
+    {
+        $value = $this->generator->numberBetween(2 ** 32, 2 ** 33);
+
+        return $value;
+    }
+
+    public function bit(): int
+    {
+        $value = $this->generator->numberBetween(1, 2 ** 6);
+
+        return $value;
+    }
 }
