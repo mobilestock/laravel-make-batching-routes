@@ -93,11 +93,10 @@ class TypesProvider extends Base
     }
 
     /**
-     * The real MySQL bigint range (signed: up to 2^63-1, unsigned: up to 2^64-1)
-     * exceeds PHP_INT_MAX on 64-bit systems. Faker's numberBetween() relies on
-     * mt_rand() which cannot handle values beyond PHP_INT_MAX. We use a reduced
-     * range (2^32 to 2^33) that still generates values clearly distinct from
-     * smaller integer types.
+     * Unsigned MySQL bigint (up to 2^64-1) exceeds PHP_INT_MAX on 64-bit systems.
+     * Faker's numberBetween() relies on mt_rand() which cannot handle values beyond
+     * PHP_INT_MAX. We use a reduced range (2^32 to 2^33) that still generates
+     * values clearly distinct from smaller integer types.
      */
     public function bigInt(): int
     {
