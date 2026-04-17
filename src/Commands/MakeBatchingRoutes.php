@@ -147,7 +147,8 @@ class MakeBatchingRoutes extends Command
                 continue;
             }
 
-            $unsigned = Str::contains($columnType, 'unsigned') ? 'true' : 'false';
+            $lowerColumnType = Str::lower($columnType);
+            $unsigned = Str::contains($lowerColumnType, 'unsigned') ? 'true' : 'false';
 
             preg_match('/\((.+)\)/', $columnType, $matches);
             $fields[] = match (true) {
