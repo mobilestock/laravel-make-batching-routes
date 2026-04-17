@@ -105,9 +105,13 @@ class TypesProvider extends Base
         return $value;
     }
 
-    public function bit(): int
+    public function bit(int $size = 6): int
     {
-        $value = $this->generator->numberBetween(1, 2 ** 6);
+        if ($size < 1 || $size > 64) {
+            throw new InvalidArgumentException('bit() size must be between 1 and 64');
+        }
+
+        $value = $this->generator->numberBetween(0, 2 ** $size - 1);
 
         return $value;
     }

@@ -77,7 +77,7 @@ it('should generate a :dataset value within valid range', function (
 
 dataset('fixedRangeIntegerTypes', [
     'bigInt' => ['bigInt', 2 ** 32, 2 ** 33],
-    'bit' => ['bit', 1, 2 ** 6],
+    'bit' => ['bit', 0, 2 ** 6 - 1],
 ]);
 
 it('should generate a :dataset value within fixed range', function (string $method, int $min, int $max) {
@@ -85,3 +85,15 @@ it('should generate a :dataset value within fixed range', function (string $meth
 
     expect($value)->toBeInt()->toBeGreaterThanOrEqual($min)->toBeLessThanOrEqual($max);
 })->with('fixedRangeIntegerTypes');
+
+dataset('invalidBitSizes', [
+    'zero' => [0],
+    'negative' => [-1],
+    'exceeds max' => [65],
+]);
+
+it('should throw exception for invalid bit size :dataset', function (int $size) {
+    $this->typesProvider->bit(size: $size);
+})
+    ->with('invalidBitSizes')
+    ->throws(InvalidArgumentException::class, 'bit() size must be between 1 and 64');
