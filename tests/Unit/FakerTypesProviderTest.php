@@ -106,11 +106,11 @@ it('should generate a bit value within valid range', function () {
 dataset('invalidBitSizes', [
     'zero' => [0],
     'negative' => [-1],
-    'exceeds max' => [65],
+    'exceeds max' => [64],
 ]);
 
 it('should throw exception for invalid bit size :dataset', function (int $size) {
     $this->typesProvider->bit(size: $size);
 })
     ->with('invalidBitSizes')
-    ->throws(InvalidArgumentException::class, 'bit() size must be between 1 and 64');
+    ->throws(InvalidArgumentException::class, 'bit() size must be between 1 and 63');
