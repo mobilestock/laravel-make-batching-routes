@@ -61,6 +61,10 @@ class MakeBatchingRoutes extends Command
                 $casts,
                 fn(string $type): bool => Str::contains($type, ['point', 'polygon'], true)
             );
+            $dtos = array_filter(
+                $casts,
+                fn(string $type): bool => class_exists($type) && is_subclass_of($type, \Spatie\LaravelData\Data::class)
+            );
 
             $hiddenColumns = $model->getHidden();
             $columns = $this->getTableColumnsFromSchema($tableName);
@@ -71,6 +75,7 @@ class MakeBatchingRoutes extends Command
                 'enums' => array_keys($enums),
                 'jsons' => array_keys($jsons),
                 'spatials' => array_keys($spatials),
+                'dtos' => array_keys($dtos),
             ];
 
             $fields = $this->convertColumnsToFactoryDefinitions($columns);
@@ -314,6 +319,8 @@ PHP;
                 $transformer = match (true) {
                     in_array($column, $table['enums']) => '->pluck(\'value\')',
                     in_array($column, $table['jsons']) => '->map(\'json_encode\')',
+                    in_array($column, $table['dtos'])
+                        => '->map(fn(\Spatie\LaravelData\Data $dto): string => json_encode($dto->toArray()))',
                     default => '',
                 };
 

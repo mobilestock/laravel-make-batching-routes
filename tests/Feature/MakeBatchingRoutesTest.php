@@ -281,10 +281,11 @@ it('should insert tests :dataset middlewares correctly', function (
         [
             $modelNamespace => [
                 'name' => $tableName,
-                'columns' => ['id', 'name', 'status', 'metadata', 'area'],
+                'columns' => ['id', 'name', 'status', 'metadata', 'area', 'config'],
                 'enums' => ['status'],
                 'jsons' => ['metadata'],
                 'spatials' => ['area'],
+                'dtos' => ['config'],
             ],
         ],
     ]);
@@ -311,6 +312,7 @@ it('should handle the command correctly', function () {
             'enums' => [],
             'jsons' => [],
             'spatials' => [],
+            'dtos' => [],
         ],
     ];
 
