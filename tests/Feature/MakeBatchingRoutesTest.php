@@ -373,6 +373,86 @@ it('should handle the command correctly', function () {
         ->handle();
 });
 
+it('should detect dto casts in handle', function () use ($MODEL_PATH) {
+    File::put(
+        "$MODEL_PATH/FakeDTO.php",
+        '<?php namespace Tests\Temp\Models; use Spatie\LaravelData\Data; class FakeDTO extends Data { public function __construct(public readonly int $value) {} }'
+    );
+
+    $tableName = 'test_dto_handles';
+    $columns = [
+        'id' => 'int(11)',
+        'config' => 'longtext',
+    ];
+    $fields = ["'id' => \$this->faker->unique()->int(unsigned: false),", "'config' => \$this->faker->text(),"];
+    $models = [
+        '\\Tests\\Temp\\Models\\Test' => [
+            'name' => $tableName,
+            'columns' => ['id', 'config'],
+            'enums' => [],
+            'jsons' => [],
+            'spatials' => [],
+            'dtos' => ['config'],
+        ],
+    ];
+
+    $mockModel = Mockery::mock(Model::class)
+        ->shouldReceive('getTable')
+        ->once()
+        ->andReturn($tableName)
+        ->shouldReceive('getCasts')
+        ->once()
+        ->andReturn(['config' => \Tests\Temp\Models\FakeDTO::class])
+        ->shouldReceive('getHidden')
+        ->once()
+        ->andReturn([])
+        ->getMock();
+
+    App::partialMock()
+        ->shouldReceive('getNamespace')
+        ->once()
+        ->andReturn('Tests\\Temp\\')
+        ->shouldReceive('make')
+        ->once()
+        ->andReturn($mockModel);
+
+    $artisanMock = Mockery::mock(Kernel::class)
+        ->shouldReceive('call')
+        ->once()
+        ->with('schema:dump')
+        ->getMock();
+    Artisan::swap($artisanMock);
+
+    Mockery::mock(MakeBatchingRoutes::class)
+        ->makePartial()
+        ->shouldAllowMockingProtectedMethods()
+        ->shouldReceive('getModelList')
+        ->once()
+        ->andReturn([['className' => '\\Tests\\Temp\\Models\\Test', 'fileName' => 'Test']])
+        ->shouldReceive('getTableColumnsFromSchema')
+        ->with($tableName)
+        ->once()
+        ->andReturn($columns)
+        ->shouldReceive('convertColumnsToFactoryDefinitions')
+        ->with($columns)
+        ->once()
+        ->andReturn($fields)
+        ->shouldReceive('insertFactoryFiles')
+        ->with('Test', $fields)
+        ->once()
+        ->shouldReceive('insertAPIRouteFile')
+        ->with($models)
+        ->once()
+        ->shouldReceive('insertTestFile')
+        ->with($models)
+        ->once()
+        ->shouldReceive('info')
+        ->with('Batching routes generated successfully')
+        ->once()
+        ->getMock()
+        ->handle();
+});
+
 it('should show error if not found models reflections', function () {
     App::partialMock()->shouldReceive('getNamespace')->once()->andReturn('Tests\\Temp\\');
     Mockery::mock(MakeBatchingRoutes::class)

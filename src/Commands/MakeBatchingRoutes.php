@@ -63,7 +63,9 @@ class MakeBatchingRoutes extends Command
             );
             $dtos = array_filter(
                 $casts,
-                fn(string $type): bool => class_exists($type) && is_subclass_of($type, \Spatie\LaravelData\Data::class)
+                fn(string $type): bool => class_exists($type) &&
+                    class_exists(\Spatie\LaravelData\Data::class) &&
+                    is_subclass_of($type, \Spatie\LaravelData\Data::class)
             );
 
             $hiddenColumns = $model->getHidden();
@@ -320,7 +322,7 @@ PHP;
                     in_array($column, $table['enums']) => '->pluck(\'value\')',
                     in_array($column, $table['jsons']) => '->map(\'json_encode\')',
                     in_array($column, $table['dtos'])
-                        => '->map(fn(\Spatie\LaravelData\Data $dto): string => json_encode($dto->toArray()))',
+                        => '->map(fn(?\Spatie\LaravelData\Data $dto): string => empty($dto) ? \'null\' : json_encode($dto->toArray(), JSON_THROW_ON_ERROR))',
                     default => '',
                 };
 
