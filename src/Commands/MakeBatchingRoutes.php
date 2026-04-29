@@ -89,6 +89,9 @@ class MakeBatchingRoutes extends Command
         $this->info('Batching routes generated successfully');
     }
 
+    /**
+     * @return array<array{className: string, fileName: string}>
+     */
     protected function getModelList(): array
     {
         $modelsToGenerate = [];
