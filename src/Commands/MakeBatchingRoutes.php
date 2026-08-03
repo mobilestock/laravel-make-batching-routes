@@ -21,7 +21,7 @@ class MakeBatchingRoutes extends Command
      * @var string
      */
     protected $signature = 'make:batching-routes
-                            {--schema-dump=true : Run schema:dump before generating batching routes}';
+                            {--execute-schema-dump=true : Run schema:dump before generating batching routes}';
 
     /**
      * The console command description.
@@ -47,10 +47,7 @@ class MakeBatchingRoutes extends Command
             return;
         }
 
-        $shouldDumpSchema = filter_var($this->option('schema-dump'), FILTER_VALIDATE_BOOL);
-        if ($shouldDumpSchema) {
-            Artisan::call('schema:dump');
-        }
+        $this->executeSchemaDump();
         $models = [];
 
         foreach ($modelFiles as $modelFile) {
@@ -91,6 +88,14 @@ class MakeBatchingRoutes extends Command
         $this->insertAPIRouteFile($models);
         $this->insertTestFile($models);
         $this->info('Batching routes generated successfully');
+    }
+
+    protected function executeSchemaDump(): void
+    {
+        $shouldExecuteSchemaDump = filter_var($this->option('execute-schema-dump'), FILTER_VALIDATE_BOOL);
+        if ($shouldExecuteSchemaDump) {
+            Artisan::call('schema:dump');
+        }
     }
 
     /**

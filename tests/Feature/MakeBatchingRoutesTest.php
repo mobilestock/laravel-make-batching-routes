@@ -21,9 +21,26 @@ beforeEach(function () use ($MODEL_PATH, $DATABASE_PATH) {
 });
 
 it('should enable schema dump by default', function () {
-    $schemaDumpDefault = $this->command->getDefinition()->getOption('schema-dump')->getDefault();
+    $schemaDumpDefault = $this->command->getDefinition()->getOption('execute-schema-dump')->getDefault();
 
     expect($schemaDumpDefault)->toBe('true');
+});
+
+it('should not execute schema dump when disabled', function () {
+    $artisanSpy = Mockery::spy(Kernel::class);
+    Artisan::swap($artisanSpy);
+    $command = Mockery::mock(MakeBatchingRoutes::class)
+        ->makePartial()
+        ->shouldAllowMockingProtectedMethods()
+        ->shouldReceive('option')
+        ->with('execute-schema-dump')
+        ->once()
+        ->andReturn('false')
+        ->getMock();
+
+    invokeProtectedMethod($command, 'executeSchemaDump');
+
+    $artisanSpy->shouldNotHaveReceived('call');
 });
 
 dataset('datasetNamespaces', function () {
@@ -353,7 +370,7 @@ it('should handle the command correctly', function () {
         ->makePartial()
         ->shouldAllowMockingProtectedMethods()
         ->shouldReceive('option')
-        ->with('schema-dump')
+        ->with('execute-schema-dump')
         ->once()
         ->andReturn('true')
         ->shouldReceive('getModelList')
@@ -434,7 +451,7 @@ it('should detect dto casts in handle', function () use ($MODEL_PATH) {
         ->makePartial()
         ->shouldAllowMockingProtectedMethods()
         ->shouldReceive('option')
-        ->with('schema-dump')
+        ->with('execute-schema-dump')
         ->once()
         ->andReturn('false')
         ->shouldReceive('getModelList')
