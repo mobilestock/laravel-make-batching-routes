@@ -93,11 +93,8 @@ class MakeBatchingRoutes extends Command
 
     protected function executeSchemaDump(): void
     {
-        $shouldExecuteSchemaDump = filter_var(
-            $this->option('execute-schema-dump'),
-            FILTER_VALIDATE_BOOL,
-            FILTER_NULL_ON_FAILURE
-        );
+        $rawOption = $this->option('execute-schema-dump');
+        $shouldExecuteSchemaDump = filter_var($rawOption, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE);
         if ($shouldExecuteSchemaDump === null) {
             throw new InvalidArgumentException('The --execute-schema-dump option must be true or false.');
         }
