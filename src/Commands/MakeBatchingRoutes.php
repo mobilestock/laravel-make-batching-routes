@@ -20,7 +20,8 @@ class MakeBatchingRoutes extends Command
      *
      * @var string
      */
-    protected $signature = 'make:batching-routes';
+    protected $signature = 'make:batching-routes
+                            {--schema-dump=true : Run schema:dump before generating batching routes}';
 
     /**
      * The console command description.
@@ -46,7 +47,10 @@ class MakeBatchingRoutes extends Command
             return;
         }
 
-        Artisan::call('schema:dump');
+        $shouldDumpSchema = filter_var($this->option('schema-dump'), FILTER_VALIDATE_BOOL);
+        if ($shouldDumpSchema) {
+            Artisan::call('schema:dump');
+        }
         $models = [];
 
         foreach ($modelFiles as $modelFile) {

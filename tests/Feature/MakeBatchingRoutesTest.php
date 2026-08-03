@@ -20,6 +20,12 @@ beforeEach(function () use ($MODEL_PATH, $DATABASE_PATH) {
     $this->command = new MakeBatchingRoutes();
 });
 
+it('should enable schema dump by default', function () {
+    $schemaDumpDefault = $this->command->getDefinition()->getOption('schema-dump')->getDefault();
+
+    expect($schemaDumpDefault)->toBe('true');
+});
+
 dataset('datasetNamespaces', function () {
     return [
         'return' => ['Tests\\Temp', 1],
@@ -346,6 +352,10 @@ it('should handle the command correctly', function () {
     Mockery::mock(MakeBatchingRoutes::class)
         ->makePartial()
         ->shouldAllowMockingProtectedMethods()
+        ->shouldReceive('option')
+        ->with('schema-dump')
+        ->once()
+        ->andReturn('true')
         ->shouldReceive('getModelList')
         ->once()
         ->andReturn([['className' => '\\Tests\\Temp\\Models\\Test', 'fileName' => 'Test']])
@@ -416,16 +426,17 @@ it('should detect dto casts in handle', function () use ($MODEL_PATH) {
         ->once()
         ->andReturn($mockModel);
 
-    $artisanMock = Mockery::mock(Kernel::class)
-        ->shouldReceive('call')
-        ->once()
-        ->with('schema:dump')
-        ->getMock();
+    $artisanMock = Mockery::mock(Kernel::class);
+    $artisanMock->shouldNotReceive('call');
     Artisan::swap($artisanMock);
 
     Mockery::mock(MakeBatchingRoutes::class)
         ->makePartial()
         ->shouldAllowMockingProtectedMethods()
+        ->shouldReceive('option')
+        ->with('schema-dump')
+        ->once()
+        ->andReturn('false')
         ->shouldReceive('getModelList')
         ->once()
         ->andReturn([['className' => '\\Tests\\Temp\\Models\\Test', 'fileName' => 'Test']])
