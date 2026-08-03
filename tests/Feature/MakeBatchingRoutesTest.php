@@ -40,7 +40,23 @@ it('should not execute schema dump when disabled', function () {
 
     invokeProtectedMethod($command, 'executeSchemaDump');
 
-    $artisanSpy->shouldNotHaveReceived('call');
+    $artisanSpy->shouldNotHaveReceived('call', ['schema:dump']);
+});
+
+it('should reject invalid execute schema dump values', function () {
+    $command = Mockery::mock(MakeBatchingRoutes::class)
+        ->makePartial()
+        ->shouldAllowMockingProtectedMethods()
+        ->shouldReceive('option')
+        ->with('execute-schema-dump')
+        ->once()
+        ->andReturn('treu')
+        ->getMock();
+
+    $executeSchemaDump = fn() => invokeProtectedMethod($command, 'executeSchemaDump');
+
+    expect($executeSchemaDump)
+        ->toThrow(InvalidArgumentException::class, 'The --execute-schema-dump option must be true or false.');
 });
 
 dataset('datasetNamespaces', function () {
@@ -443,8 +459,11 @@ it('should detect dto casts in handle', function () use ($MODEL_PATH) {
         ->once()
         ->andReturn($mockModel);
 
-    $artisanMock = Mockery::mock(Kernel::class);
-    $artisanMock->shouldNotReceive('call');
+    $artisanMock = Mockery::mock(Kernel::class)
+        ->shouldReceive('call')
+        ->once()
+        ->with('schema:dump')
+        ->getMock();
     Artisan::swap($artisanMock);
 
     Mockery::mock(MakeBatchingRoutes::class)
@@ -453,7 +472,7 @@ it('should detect dto casts in handle', function () use ($MODEL_PATH) {
         ->shouldReceive('option')
         ->with('execute-schema-dump')
         ->once()
-        ->andReturn('false')
+        ->andReturn('true')
         ->shouldReceive('getModelList')
         ->once()
         ->andReturn([['className' => '\\Tests\\Temp\\Models\\Test', 'fileName' => 'Test']])

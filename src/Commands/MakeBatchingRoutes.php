@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 use MobileStock\MakeBatchingRoutes\HasBatchingEndpoint;
 use MobileStock\MakeBatchingRoutes\Utils\ClassNameSanitize;
 use RecursiveDirectoryIterator;
@@ -92,10 +93,20 @@ class MakeBatchingRoutes extends Command
 
     protected function executeSchemaDump(): void
     {
-        $shouldExecuteSchemaDump = filter_var($this->option('execute-schema-dump'), FILTER_VALIDATE_BOOL);
-        if ($shouldExecuteSchemaDump) {
-            Artisan::call('schema:dump');
+        $shouldExecuteSchemaDump = filter_var(
+            $this->option('execute-schema-dump'),
+            FILTER_VALIDATE_BOOL,
+            FILTER_NULL_ON_FAILURE
+        );
+        if ($shouldExecuteSchemaDump === null) {
+            throw new InvalidArgumentException('The --execute-schema-dump option must be true or false.');
         }
+
+        if (!$shouldExecuteSchemaDump) {
+            return;
+        }
+
+        Artisan::call('schema:dump');
     }
 
     /**
