@@ -20,6 +20,45 @@ beforeEach(function () use ($MODEL_PATH, $DATABASE_PATH) {
     $this->command = new MakeBatchingRoutes();
 });
 
+it('should enable schema dump by default', function () {
+    $schemaDumpDefault = $this->command->getDefinition()->getOption('execute-schema-dump')->getDefault();
+
+    expect($schemaDumpDefault)->toBe('true');
+});
+
+it('should not execute schema dump when disabled', function () {
+    $artisanSpy = Mockery::spy(Kernel::class);
+    Artisan::swap($artisanSpy);
+    $command = Mockery::mock(MakeBatchingRoutes::class)
+        ->makePartial()
+        ->shouldAllowMockingProtectedMethods()
+        ->shouldReceive('option')
+        ->with('execute-schema-dump')
+        ->once()
+        ->andReturn('false')
+        ->getMock();
+
+    invokeProtectedMethod($command, 'executeSchemaDump');
+
+    $artisanSpy->shouldNotHaveReceived('call', ['schema:dump']);
+});
+
+it('should reject invalid execute schema dump values', function () {
+    $command = Mockery::mock(MakeBatchingRoutes::class)
+        ->makePartial()
+        ->shouldAllowMockingProtectedMethods()
+        ->shouldReceive('option')
+        ->with('execute-schema-dump')
+        ->once()
+        ->andReturn('treu')
+        ->getMock();
+
+    $executeSchemaDump = fn() => invokeProtectedMethod($command, 'executeSchemaDump');
+
+    expect($executeSchemaDump)
+        ->toThrow(InvalidArgumentException::class, 'The --execute-schema-dump option must be true or false.');
+});
+
 dataset('datasetNamespaces', function () {
     return [
         'return' => ['Tests\\Temp', 1],
@@ -346,6 +385,10 @@ it('should handle the command correctly', function () {
     Mockery::mock(MakeBatchingRoutes::class)
         ->makePartial()
         ->shouldAllowMockingProtectedMethods()
+        ->shouldReceive('option')
+        ->with('execute-schema-dump')
+        ->once()
+        ->andReturn('true')
         ->shouldReceive('getModelList')
         ->once()
         ->andReturn([['className' => '\\Tests\\Temp\\Models\\Test', 'fileName' => 'Test']])
@@ -426,6 +469,10 @@ it('should detect dto casts in handle', function () use ($MODEL_PATH) {
     Mockery::mock(MakeBatchingRoutes::class)
         ->makePartial()
         ->shouldAllowMockingProtectedMethods()
+        ->shouldReceive('option')
+        ->with('execute-schema-dump')
+        ->once()
+        ->andReturn('true')
         ->shouldReceive('getModelList')
         ->once()
         ->andReturn([['className' => '\\Tests\\Temp\\Models\\Test', 'fileName' => 'Test']])

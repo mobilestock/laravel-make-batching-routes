@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 use MobileStock\MakeBatchingRoutes\HasBatchingEndpoint;
 use MobileStock\MakeBatchingRoutes\Utils\ClassNameSanitize;
 use RecursiveDirectoryIterator;
@@ -20,7 +21,8 @@ class MakeBatchingRoutes extends Command
      *
      * @var string
      */
-    protected $signature = 'make:batching-routes';
+    protected $signature = 'make:batching-routes
+                            {--execute-schema-dump=true : Run schema:dump before generating batching routes}';
 
     /**
      * The console command description.
@@ -46,7 +48,7 @@ class MakeBatchingRoutes extends Command
             return;
         }
 
-        Artisan::call('schema:dump');
+        $this->executeSchemaDump();
         $models = [];
 
         foreach ($modelFiles as $modelFile) {
@@ -87,6 +89,21 @@ class MakeBatchingRoutes extends Command
         $this->insertAPIRouteFile($models);
         $this->insertTestFile($models);
         $this->info('Batching routes generated successfully');
+    }
+
+    protected function executeSchemaDump(): void
+    {
+        $rawOption = $this->option('execute-schema-dump');
+        $shouldExecuteSchemaDump = filter_var($rawOption, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE);
+        if ($shouldExecuteSchemaDump === null) {
+            throw new InvalidArgumentException('The --execute-schema-dump option must be true or false.');
+        }
+
+        if (!$shouldExecuteSchemaDump) {
+            return;
+        }
+
+        Artisan::call('schema:dump');
     }
 
     /**
