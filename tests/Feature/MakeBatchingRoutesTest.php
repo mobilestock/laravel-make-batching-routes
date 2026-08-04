@@ -55,8 +55,10 @@ it('should reject invalid execute schema dump values', function () {
 
     $executeSchemaDump = fn() => invokeProtectedMethod($command, 'executeSchemaDump');
 
-    expect($executeSchemaDump)
-        ->toThrow(InvalidArgumentException::class, 'The --execute-schema-dump option must be true or false.');
+    expect($executeSchemaDump)->toThrow(
+        InvalidArgumentException::class,
+        'The --execute-schema-dump option must be true or false.'
+    );
 });
 
 dataset('datasetNamespaces', function () {
@@ -445,7 +447,7 @@ it('should detect dto casts in handle', function () use ($MODEL_PATH) {
         ->andReturn($tableName)
         ->shouldReceive('getCasts')
         ->once()
-        ->andReturn(['config' => \Tests\Temp\Models\FakeDTO::class])
+        ->andReturn(['config' => Tests\Temp\Models\FakeDTO::class])
         ->shouldReceive('getHidden')
         ->once()
         ->andReturn([])
