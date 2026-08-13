@@ -445,7 +445,7 @@ it('should detect dto casts in handle', function () use ($MODEL_PATH) {
         ->andReturn($tableName)
         ->shouldReceive('getCasts')
         ->once()
-        ->andReturn(['config' => Tests\Temp\Models\FakeDTO::class])
+        ->andReturn(['config' => \Tests\Temp\Models\FakeDTO::class])
         ->shouldReceive('getHidden')
         ->once()
         ->andReturn([])
