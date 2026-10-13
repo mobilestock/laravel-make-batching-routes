@@ -73,26 +73,67 @@ PHP
     $appSpy->shouldHaveReceived('make')->with('\Tests\Temp\Models\CorrectTable')->once();
 });
 
-it('should return true when header is present and user has permission', function () {
-    $permission = 'ignore-batching-scopes';
+describe('shouldIgnoreModelScopes', function () {
+    beforeEach(function () {
+        $this->permission = 'supplier';
 
-    $modelSpy = Mockery::spy(Model::class);
-    $modelSpy->shouldReceive('getBatchingGlobalAccessPermissions')->andReturn(Collection::make([$permission]));
+        $this->modelSpy = Mockery::spy(Model::class);
+        $this->modelSpy
+            ->shouldReceive('getGlobalScopes')
+            ->andReturn(['logged_user' => fn() => null])
+            ->byDefault();
+        $this->modelSpy
+            ->shouldReceive('getBatchingGlobalAccessPermissions')
+            ->andReturn(Collection::make([$this->permission]));
 
-    Auth::shouldReceive('shouldUse')->with($permission)->once();
+        $this->authSpy = Auth::spy();
+        $this->gateSpy = Gate::spy();
+        $this->gateSpy->shouldReceive('allows')->andReturnTrue();
 
-    $gateSpy = Gate::spy();
-    $gateSpy->shouldReceive('allows')->andReturnTrue();
+        $request = Request::create('api/batching/grouped/some_table');
+        $request->headers->set('Authorization', 'Bearer user-access-token');
+        Request::swap($request);
 
-    $request = Request::create('api/batching/some_table');
-    $request->headers->set('X-Ignore-Scopes', 'true');
-    Request::swap($request);
+        $this->service = new RequestService();
+    });
 
-    $service = new RequestService();
-    $result = $service->shouldIgnoreModelScopes($modelSpy);
+    it('should return true when model has global scopes and user has permission', function () {
+        $result = $this->service->shouldIgnoreModelScopes($this->modelSpy);
 
-    expect($result)->toBeTrue();
+        expect($result)->toBeTrue();
 
-    $modelSpy->shouldHaveReceived('getBatchingGlobalAccessPermissions')->once();
-    $gateSpy->shouldHaveReceived('allows')->with($permission)->once();
+        $this->authSpy
+            ->shouldHaveReceived('shouldUse')
+            ->with($this->permission)
+            ->once();
+        $this->gateSpy
+            ->shouldHaveReceived('allows')
+            ->with($this->permission)
+            ->once();
+    });
+
+    it('should return false without checking permissions when model has no global scopes', function () {
+        $this->modelSpy->shouldReceive('getGlobalScopes')->andReturn([]);
+
+        $result = $this->service->shouldIgnoreModelScopes($this->modelSpy);
+
+        expect($result)->toBeFalse();
+
+        $this->modelSpy->shouldNotHaveReceived('getBatchingGlobalAccessPermissions');
+        $this->authSpy->shouldNotHaveReceived('shouldUse');
+        $this->gateSpy->shouldNotHaveReceived('allows');
+    });
+
+    it('should return false without checking permissions when request has no bearer token', function () {
+        $request = Request::create('api/batching/grouped/some_table');
+        Request::swap($request);
+
+        $result = $this->service->shouldIgnoreModelScopes($this->modelSpy);
+
+        expect($result)->toBeFalse();
+
+        $this->modelSpy->shouldNotHaveReceived('getBatchingGlobalAccessPermissions');
+        $this->authSpy->shouldNotHaveReceived('shouldUse');
+        $this->gateSpy->shouldNotHaveReceived('allows');
+    });
 });
