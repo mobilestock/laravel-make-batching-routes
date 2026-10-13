@@ -54,6 +54,13 @@ class RequestService
 
     public function shouldIgnoreModelScopes(Model $model): bool
     {
+        $globalScopes = $model->getGlobalScopes();
+        $bearerToken = Request::bearerToken();
+
+        if (empty($globalScopes) || empty($bearerToken)) {
+            return false;
+        }
+
         $permissions = $model::getBatchingGlobalAccessPermissions();
 
         $hasPermissionToIgnoreScopes = $permissions->some(function (string $permission): bool {
